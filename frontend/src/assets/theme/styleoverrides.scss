@@ -1,0 +1,52 @@
+#app {
+   button.p-scrolltop {
+      border: 2px solid white;
+      &:focus {
+         outline: 2px dashed white;
+         outline-offset: 3px;
+      }
+   }
+   button.p-button.checked {
+      .p-button-icon {
+         color: $uva-brand-blue-100;
+      }
+   }
+   button.p-button {
+      white-space: nowrap
+   }
+   a.p-button.p-component {
+      &:hover {
+         text-decoration: none;
+      }
+   }
+   .p-menubar.p-component {
+      border-bottom: 1px solid $uva-grey-100;
+      a.p-menubar-item-link {
+         white-space: nowrap;
+         &:hover{
+            color:white;
+            text-decoration: none;
+         }
+      }
+   }
+}
+
+div.p-card.p-component {
+   border: 1px solid $uva-grey-100;
+}
+
+div.p-fieldset-content {
+   display: flex;
+   flex-direction: column;
+   gap: 10px;
+}
+
+.p-dialog-mask {
+   .p-dialog {
+      .p-dialog-header {
+         background: $uva-teal-200;
+         border-bottom: 1px solid $uva-teal-100;
+         border-radius: 0.3rem 0.3rem 0 0;
+      }
+   }
+}
