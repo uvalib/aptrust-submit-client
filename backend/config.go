@@ -6,8 +6,9 @@ import (
 )
 
 type devConfig struct {
-	user    string
-	fakeBus bool
+	user       string
+	canApprove bool
+	fakeBus    bool
 }
 
 type dbConfig struct {
@@ -24,6 +25,7 @@ type configData struct {
 	busName         string
 	eventSourceName string
 	database        dbConfig
+	group           string
 	dev             devConfig
 }
 
@@ -31,6 +33,7 @@ func getConfiguration() *configData {
 	var config configData
 	flag.IntVar(&config.port, "port", 8080, "Port to offer service on")
 	flag.StringVar(&config.jwtKey, "jwtkey", "", "JWT signature key")
+	flag.StringVar(&config.jwtKey, "group", "lib-aptrust-submit-approve-dev", "JWT signature key")
 
 	// DB connection params
 	flag.StringVar(&config.database.host, "dbhost", "", "Database host")
@@ -45,6 +48,7 @@ func getConfiguration() *configData {
 
 	// dev mode
 	flag.StringVar(&config.dev.user, "devuser", "", "Authorized computing id for dev")
+	flag.BoolVar(&config.dev.canApprove, "devapprove", false, "Can dev user approve submissions")
 	flag.BoolVar(&config.dev.fakeBus, "devbus", false, "bus dev mode (no events sent out)")
 
 	flag.Parse()
@@ -72,6 +76,7 @@ func getConfiguration() *configData {
 	}
 
 	log.Printf("[CONFIG] port            = [%d]", config.port)
+	log.Printf("[CONFIG] group           = [%s]", config.group)
 	log.Printf("[CONFIG] dbhost          = [%s]", config.database.host)
 	log.Printf("[CONFIG] dbport          = [%d]", config.database.port)
 	log.Printf("[CONFIG] dbname          = [%s]", config.database.name)
@@ -81,6 +86,7 @@ func getConfiguration() *configData {
 
 	if config.dev.user != "" {
 		log.Printf("[CONFIG] devuser         = [%s]", config.dev.user)
+		log.Printf("[CONFIG] devapprove      = [%t]", config.dev.canApprove)
 	}
 	if config.dev.fakeBus {
 		log.Printf("[CONFIG] ** dev mode bus - event publishing is disabled **")

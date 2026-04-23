@@ -22,6 +22,8 @@ type eventContext struct {
 
 type serviceContext struct {
 	Version string
+	JWTKey  string
+	Group   string
 	DB      *gorm.DB
 	Events  eventContext
 	Dev     devConfig
@@ -30,6 +32,9 @@ type serviceContext struct {
 func initializeService(version string, cfg *configData) *serviceContext {
 	ctx := serviceContext{
 		Version: version,
+		JWTKey:  cfg.jwtKey,
+		Group:   cfg.group,
+		Dev:     cfg.dev,
 	}
 
 	log.Printf("INFO: connecting to database...")

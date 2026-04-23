@@ -27,8 +27,6 @@ func main() {
 
 	// // Set routes and start serve
 	router.GET("/authenticate", svc.authenticate)
-	// router.POST("/signout", svc.signout)
-	// router.GET("/authcheck", svc.checkAuthToken)
 	router.GET("/healthcheck", svc.healthCheck)
 	router.GET("/version", svc.getVersion)
 	router.GET("/config", svc.getConfig)

@@ -1,27 +1,37 @@
 <template>
    <Toast position="center" />
    <ConfirmDialog position="top" />
-   <header id="aptsubmit-header" class="main-header">
-      <div class="library-link">
-          <UvaLibraryLogo />
+   <header id="aptsubmit-header">
+      <div class="main-header">
+         <div class="library-link">
+            <UvaLibraryLogo />
+         </div>
+         <div class="site-link">
+            <router-link to="/">
+               APTrust Submissions
+            </router-link>
+         </div>
       </div>
-      <div class="site-link">
-          <router-link to="/">
-            APTrust Submissions
-          </router-link>
+      <div class="user-header" v-if="system.isSignedIn">
+         <div class="signin">
+            <span>Signed in as {{ system.signedInUser }}</span>
+            <Button icon="pi pi-sign-out" severity="secondary" 
+                raised aria-label="sign out" size="small"
+               title="Sign out" @click="system.signOut()"
+            />
+         </div>
       </div>
    </header>
    <main>
       <RouterView  v-if="configuring == false"/>
-      <div v-else class="authenticating">Authenticating...</div>
       <span id="new-window" tabindex="-1" class="screen-reader-text">opens in a new window</span>
    </main>
 
    <LibraryFooter />
    <ScrollTop />
 
-   <Dialog v-model:visible="systemStore.showError" :modal="true" header="System Error" @hide="errorClosed()" class="error">
-      {{systemStore.error}}
+   <Dialog v-model:visible="system.showError" :modal="true" header="System Error" @hide="errorClosed()" class="error">
+      {{system.error}}
       <template #footer>
          <Button label="OK" autofocus class="p-button-secondary" @click="errorClosed()"/>
       </template>
@@ -40,29 +50,29 @@ import { useToast } from "primevue/usetoast"
 import { useSystemStore } from "@/stores/system"
 
 const toast = useToast()
-const systemStore = useSystemStore()
+const system = useSystemStore()
 
 const configuring = ref(true)
 
-watch(() => systemStore.toast.show, (newShow) => {
+watch(() => system.toast.show, (newShow) => {
    if ( newShow == true) {
-      if ( systemStore.toast.error) {
-         toast.add({severity:'error', summary:  systemStore.toast.summary, detail:  systemStore.toast.message})
+      if ( system.toast.error) {
+         toast.add({severity:'error', summary:  system.toast.summary, detail:  system.toast.message})
       } else {
-         toast.add({severity:'success', summary:  systemStore.toast.summary, detail:  systemStore.toast.message, life: 5000})
+         toast.add({severity:'success', summary:  system.toast.summary, detail:  system.toast.message, life: 5000})
       }
-      systemStore.clearToastMessage()
+      system.clearToastMessage()
    }
 })
 
 onBeforeMount( async () => {
-   await systemStore.getConfig()
+   await system.getConfig()
    configuring.value = false
 })
 
 const errorClosed = (() => {
-   systemStore.setError("")
-   systemStore.showError = false
+   system.setError("")
+   system.showError = false
 })
 </script>
 
@@ -166,7 +176,7 @@ header {
    font-size: 1.5rem;
    font-weight: bold;
 }
- .main-header {
+.main-header {
    display: flex;
    flex-flow: row nowrap;
    justify-content: space-between;
@@ -181,6 +191,21 @@ header {
       a {
          color: white;
       }
+   }
+}
+.user-header {
+   display: flex;
+   flex-flow: row nowrap;
+   justify-content: flex-end;
+   background-color: $uva-grey-200;
+   padding: 0.5rem 1rem;
+   border-bottom: 1px solid $uva-grey-100;
+   .signin {
+      color: $uva-grey-B;
+      display: flex;
+      flex-flow: row nowrap;
+      align-items: baseline;
+      gap: 1rem;
    }
 }
 

@@ -9,6 +9,7 @@
 </template>
 
 <script setup>
+import WaitSpinner from "@/components/WaitSpinner.vue"
 import { useSystemStore } from "@/stores/system"
 const system = useSystemStore()
 

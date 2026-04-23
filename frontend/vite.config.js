@@ -40,7 +40,7 @@ export default defineConfig({
             changeOrigin: true,
             logLevel: 'debug'
          },
-         '/signout': {
+         '/config': {
             target: process.env.APTSUBMIT_CONFIG,
             changeOrigin: true,
             logLevel: 'debug'

@@ -7,6 +7,7 @@ require (
 	github.com/gin-contrib/gzip v1.2.6
 	github.com/gin-gonic/contrib v0.0.0-20260101091603-d12f07a9136b
 	github.com/gin-gonic/gin v1.12.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/uvalib/aptrust-submit-bus-definitions/uvaaptsbus v0.0.0-20260416141430-5517dd05fe30
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
