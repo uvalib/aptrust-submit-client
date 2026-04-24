@@ -33,7 +33,7 @@ func getConfiguration() *configData {
 	var config configData
 	flag.IntVar(&config.port, "port", 8080, "Port to offer service on")
 	flag.StringVar(&config.jwtKey, "jwtkey", "", "JWT signature key")
-	flag.StringVar(&config.jwtKey, "group", "lib-aptrust-submit-approve-dev", "JWT signature key")
+	flag.StringVar(&config.group, "group", "lib-aptrust-submit-approve-dev", "JWT signature key")
 
 	// DB connection params
 	flag.StringVar(&config.database.host, "dbhost", "", "Database host")
