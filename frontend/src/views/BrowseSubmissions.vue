@@ -4,13 +4,28 @@
       <div class="content">
          <DataTable :value="submissionStore.searchHits" ref="hitstable" dataKey="id"
             stripedRows showGridlines responsiveLayout="scroll"
-            :lazy="true" :paginator="true" :alwaysShowPaginator="false"
+            :lazy="true" :paginator="true" :alwaysShowPaginator="true"
             @page="onPage($event)"  paginatorPosition="both"
             :first="submissionStore.offset" :rows="submissionStore.pageSize" :totalRecords="submissionStore.total"
             paginatorTemplate="PrevPageLink CurrentPageReport NextPageLink"
             currentPageReportTemplate="{first} - {last} of {totalRecords}"
             :loading="submissionStore.working"
          >
+            <template #header>
+               <div class="search-controls">
+                  <div class="search">
+                     <Checkbox v-model="submissionStore.includeAutoApproved" inputId="autoapproved" binary @update:model-value="submissionStore.getSubmissions()"/>
+                     <label for="autoapproved">Include auto-approved submissions</label>
+                  </div>
+                  <div class="search">
+                     <IconField iconPosition="left" class="query">
+                        <InputIcon class="pi pi-search" />
+                        <InputText v-model="submissionStore.query" @keypress="searchKeyPressed($event)" fluid aria-label="search submissions"/>
+                     </IconField>
+                     <Button severity="secondary" label="Reset" @click="submissionStore.resetSearch()"/>
+                  </div>
+               </div>
+            </template>
             <Column field="identifier" header="Identifier" />
             <Column field="collectionName" header="Name">
                <template #body="slotProps">
@@ -43,8 +58,12 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useSubmissionsStore } from "@/stores/submissions"
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
+import InputText from 'primevue/inputtext'
+import Checkbox from 'primevue/checkbox'
 
 const submissionStore = useSubmissionsStore()
 
@@ -55,6 +74,13 @@ onMounted( () => {
 const onPage = ((event) => {
    submissionStore.offset = event.first
    submissionStore.getSubmissions()
+})
+
+const searchKeyPressed = ((event) => {
+   submissionStore.offset = 0
+   if (event.keyCode == 13) {
+      submissionStore.getSubmissions()
+   }
 })
 
 </script>
@@ -70,6 +96,18 @@ const onPage = ((event) => {
    }
    .nowrap {
       white-space: nowrap;
+   }
+   .search-controls {
+      display: flex;
+      flex-flow: row nowrap;
+      justify-content: space-between;
+      .search {
+         display: flex;
+         flex-flow: row nowrap;   
+         align-items: center;
+         justify-content: flex-start;
+         gap: 10px;
+      }
    }
 }
 @media only screen and (min-width: 768px) {
