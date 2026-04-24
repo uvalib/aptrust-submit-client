@@ -31,6 +31,13 @@ func main() {
 	router.GET("/version", svc.getVersion)
 	router.GET("/config", svc.getConfig)
 
+	api := router.Group("/api", svc.userMiddleware)
+	{
+		api.POST("/error", svc.logClientError)
+		api.GET("/submissions", svc.getSubmissions)
+		api.POST("/submissions/:id/approve", svc.approvalMiddleware, svc.approveSubmission)
+	}
+
 	// Note: in dev mode, this is never actually used. The front end is served
 	// by node/vite and it proxies all requests to the API to the routes above
 	router.Use(static.Serve("/", static.LocalFile("./public", true)))

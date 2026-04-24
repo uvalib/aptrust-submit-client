@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -83,4 +84,77 @@ func (svc *serviceContext) mintUserJWT(computeID string, canApprove bool) (strin
 		return "", jwtErr
 	}
 	return signedStr, nil
+}
+
+func (svc *serviceContext) userMiddleware(c *gin.Context) {
+	log.Printf("INFO: authorize user access to %s", c.Request.URL.Path)
+	auth, err := svc.getAuthFromHeader(c.Request.Header.Get("Authorization"))
+	if err != nil {
+		log.Printf("WARNING: authentication failed: %s", err.Error())
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	c.Set("computeID", auth.claims.ComputeID)
+	c.Next()
+}
+
+func (svc *serviceContext) approvalMiddleware(c *gin.Context) {
+	log.Printf("INFO: authorize approval access to %s", c.Request.URL.Path)
+	auth, err := svc.getAuthFromHeader(c.Request.Header.Get("Authorization"))
+	if err != nil {
+		log.Printf("WARNING: authentication failed: %s", err.Error())
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+	if auth.claims.CanApprove == false {
+		log.Printf("WARNING: approval access denied for %s", auth.claims.ComputeID)
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	log.Printf("INFO: approval access granted for %s", auth.claims.ComputeID)
+	c.Set("jwt", auth.jwt)
+	c.Set("computeID", auth.claims.ComputeID)
+	c.Next()
+}
+
+type authInfo struct {
+	jwt    string
+	claims jwtClaims
+}
+
+func (svc *serviceContext) getAuthFromHeader(authHeader string) (*authInfo, error) {
+	log.Printf("INFO: extract auth token from authorization header")
+
+	// must have two components, the first of which is "Bearer", and the second a non-empty token
+	components := strings.Split(strings.Join(strings.Fields(authHeader), " "), " ")
+	if len(components) != 2 || components[0] != "Bearer" || components[1] == "" {
+		return nil, fmt.Errorf("invalid authorization header: [%s]", authHeader)
+	}
+	tokenStr := components[1]
+	if tokenStr == "undefined" {
+		return nil, fmt.Errorf("bearer token is undefined")
+	}
+
+	log.Printf("INFO: validating JWT auth token %s", tokenStr)
+	jwtClaims := jwtClaims{}
+	_, jwtErr := jwt.ParseWithClaims(tokenStr, &jwtClaims, func(token *jwt.Token) (any, error) {
+		return []byte(svc.JWTKey), nil
+	})
+	if jwtErr != nil {
+		return nil, fmt.Errorf("token validation failed: %+v", jwtErr)
+	}
+
+	auth := authInfo{jwt: tokenStr, claims: jwtClaims}
+	return &auth, nil
+}
+
+func getComputeID(c *gin.Context) string {
+	cid, exist := c.Get("computeID")
+	if exist == false {
+		log.Printf("ERROR: compute id not found in content")
+		return "unkonwn"
+	}
+	computeID := fmt.Sprintf("%v", cid)
+	return computeID
 }

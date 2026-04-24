@@ -14,6 +14,7 @@ export const useSystemStore = defineStore('system', {
 		version: "unknown",
       error: "",
       showError: false,
+      submissionStatuses: [],
       toast: {
          error: false,
          summary: "",
@@ -31,6 +32,7 @@ export const useSystemStore = defineStore('system', {
          this.working = false
          return axios.get("/config").then(response => {
             this.version = response.data.version
+            this.submissionStatuses = response.data.submissionStatuses
             this.working = false
          }).catch( err => {
             this.setError(  err )
