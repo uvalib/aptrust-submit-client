@@ -11,6 +11,14 @@ import (
 	"gorm.io/gorm"
 )
 
+type client struct {
+	ID             int64  `json:"id"`
+	Identifier     string `json:"identifier"`
+	Name           string `json:"name"`
+	DefaultStorage string `json:"defaultStorage"`
+	ApprovalEmail  string `json:"approvalEmail"`
+}
+
 type searchHit struct {
 	ID             int64     `json:"id"`
 	Identifier     string    `json:"identifier"`

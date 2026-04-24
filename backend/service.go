@@ -100,9 +100,17 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 	resp := struct {
 		Version            string   `json:"version"`
 		SubmissionStatuses []string `json:"submissionStatuses"`
+		Clients            []client `json:"clients"`
 	}{
 		Version:            ver,
-		SubmissionStatuses: []string{"building", "complete", "error", "pending-approval", "pending-ingest", "registered", "validating"},
+		SubmissionStatuses: []string{"abandoned", "building", "complete", "error", "incomplete", "pending-approval", "pending-ingest", "registered", "submitting", "validating"},
+	}
+
+	var clients []client
+	if err := svc.DB.Find(&clients).Error; err != nil {
+		log.Printf("ERROR: unable to load clients info: %s", err.Error())
+	} else {
+		resp.Clients = clients
 	}
 	c.JSON(http.StatusOK, resp)
 }
