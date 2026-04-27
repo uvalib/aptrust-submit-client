@@ -7,12 +7,18 @@ export const useSubmissionsStore = defineStore('submission', {
       working: false,
       offset: 0,
       query: "",
+      filters: [],
       includeAutoApproved: false,
       pageSize: 30,
       total: 0,
       searchHits: []
    }),
    getters: {
+      filtersAsQueryParam: state => {
+         let out = []
+         state.filters.forEach( fv => out.push(`${fv.field}=${fv.value}`) )
+         return JSON.stringify(out)
+      }
    },
    actions: {
       getSubmissions() {
@@ -25,6 +31,10 @@ export const useSubmissionsStore = defineStore('submission', {
             params.push("includeauto=1")
          } else {
             params.push("includeauto=0")    
+         }
+         let filterParam = this.filtersAsQueryParam
+         if ( filterParam != "") {
+            params.push(`filters=${filterParam}`)    
          }
          params.push(`start=${this.offset}`)
          params.push(`limit=${this.pageSize}`)

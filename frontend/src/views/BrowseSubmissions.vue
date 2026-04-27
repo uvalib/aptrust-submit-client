@@ -2,7 +2,9 @@
    <div class="dashboard">
       <h1>Browse APTrust Submissions</h1>   
       <div class="content">
+         <div>{{  filters  }}</div>
          <DataTable :value="submissionStore.searchHits" ref="hitstable" dataKey="id"
+            v-model:filters="filters" filterDisplay="menu" @filter="onFilter($event)"
             stripedRows showGridlines responsiveLayout="scroll"
             :lazy="true" :paginator="true" :alwaysShowPaginator="true"
             @page="onPage($event)"  paginatorPosition="both"
@@ -33,7 +35,11 @@
                   <span v-else class="none">Undefined</span> 
                </template>
             </Column>
-            <Column field="client" header="Client" />
+            <Column field="client" header="Client" filterField="client" :showFilterMatchModes="false">
+               <template #filter="{ filterModel, filterCallback }">
+                  <Select v-model="filterModel.value" @change="filterCallback()" :options="clients" placeholder="Select client" />
+               </template>
+            </Column>
             <Column field="storage" header="Storage" />
             <Column field="status" header="Status">
                <template #body="slotProps">
@@ -56,20 +62,48 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useSubmissionsStore } from "@/stores/submissions"
+import { useSystemStore } from "@/stores/system"
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
 import Checkbox from 'primevue/checkbox'
+import Select from 'primevue/select'
+import { FilterMatchMode } from '@primevue/core/api'
 
 const submissionStore = useSubmissionsStore()
+const system = useSystemStore()
+
+const filters = ref({
+    client: { value: null, matchMode: FilterMatchMode.EQUALS },
+});
+
+const clients = computed( () => {
+   let out = [] 
+   system.clients.forEach( c=> {
+      out.push(c.name)
+   })
+   return out
+})
+
 
 onMounted( () => {
    submissionStore.getSubmissions()
 })
+
+function onFilter(event) {
+   submissionStore.offset = 0
+   submissionStore.filters = []
+   Object.entries(event.filters).forEach(([key, data]) => {
+      if (data.value && data.value != "") {
+         submissionStore.filters.push({field: key, match: data.matchMode, value: data.value})
+      }
+   })
+   submissionStore.getSubmissions()
+}
 
 const onPage = ((event) => {
    submissionStore.offset = event.first
