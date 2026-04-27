@@ -8,9 +8,13 @@ const router = createRouter({
    routes: [
       {
          path: '/',
-         alias: '/browse',
          name: 'browse',
          component: () => import('../views/BrowseSubmissions.vue'),
+      },
+       {
+         path: '/submissions/:id',
+         name: 'details',
+         component: () => import('../views/SubmissionDetail.vue'),
       },
       {
          path: '/signedout',

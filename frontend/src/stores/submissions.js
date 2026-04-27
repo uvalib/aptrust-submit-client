@@ -60,6 +60,9 @@ export const useSubmissionsStore = defineStore('submission', {
          this.query = ""
          this.total = 0
          this.getSubmissions()
+      },
+      getSubmissionDetail( identifier ) {
+         console.log("load details for "+identifier)
       }
    }
 })

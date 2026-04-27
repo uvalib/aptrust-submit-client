@@ -62,6 +62,13 @@
             <Column field="createdAt" header="Created" class="nowrap">
                <template #body="slotProps">{{ $formatDateTime(slotProps.data.createdAt) }}</template>
             </Column>
+            <Column header="" class="nowrap">
+               <template #body="slotProps">
+                  <Button variant="link" label="View Details">
+                     <RouterLink :to="`/submissions/${slotProps.data.identifier}`" :class="slotProps.class">View details</RouterLink>
+                  </Button>
+               </template>
+            </Column>
          </DataTable>
       </div>
    </div>
