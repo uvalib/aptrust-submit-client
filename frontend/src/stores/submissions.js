@@ -22,6 +22,7 @@ export const useSubmissionsStore = defineStore('submission', {
    },
    actions: {
       getSubmissions() {
+         this.working = true
          var url = `/api/submissions?`
          var params = [] 
          if ( this.query != "" ) {

@@ -98,9 +98,10 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 	verInfo := svc.lookupVersion()
 	ver := fmt.Sprintf("v%s-%s", verInfo["version"], verInfo["build"])
 	resp := struct {
-		Version            string   `json:"version"`
-		SubmissionStatuses []string `json:"submissionStatuses"`
-		Clients            []client `json:"clients"`
+		Version            string           `json:"version"`
+		SubmissionStatuses []string         `json:"submissionStatuses"`
+		Clients            []client         `json:"clients"`
+		StorageOptions     []storageOptions `json:"storageOptions"`
 	}{
 		Version:            ver,
 		SubmissionStatuses: []string{"abandoned", "building", "complete", "error", "incomplete", "pending-approval", "pending-ingest", "registered", "submitting", "validating"},
@@ -111,6 +112,12 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 		log.Printf("ERROR: unable to load clients info: %s", err.Error())
 	} else {
 		resp.Clients = clients
+	}
+	var storage []storageOptions
+	if err := svc.DB.Where("is_active=?", true).Find(&storage).Error; err != nil {
+		log.Printf("ERROR: unable to load storage options: %s", err.Error())
+	} else {
+		resp.StorageOptions = storage
 	}
 	c.JSON(http.StatusOK, resp)
 }

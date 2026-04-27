@@ -19,8 +19,6 @@ import Button from 'primevue/button'
 import ConfirmDialog from 'primevue/confirmdialog'
 import 'primeicons/primeicons.css'
 
-console.log(UVA)
-
 app.use(PrimeVue, {
    theme: {
       preset: UVA,

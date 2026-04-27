@@ -21,6 +21,13 @@ type client struct {
 	ApprovalEmail  string `json:"approvalEmail"`
 }
 
+type storageOptions struct {
+	ID       int64  `json:"id"`
+	Value    string `json:"value"`
+	Label    string `json:"label"`
+	IsActive bool   `json:"active"`
+}
+
 type searchHit struct {
 	ID             int64     `json:"id"`
 	Identifier     string    `json:"identifier"`
@@ -55,7 +62,8 @@ func (svc *serviceContext) getSubmissions(c *gin.Context) {
 	conditions := make([]string, 0)
 
 	// First get the count of records matching the query
-	cntSql := "select count(s.id) as total from submissions s inner join clients c on c.identifier = s.client"
+	lateralQ := " JOIN LATERAL (SELECT ss.* FROM submission_state ss WHERE s.identifier = ss.submission  ORDER BY ss.id DESC  LIMIT 1) ss ON true "
+	cntSql := "select count(s.id) as total from submissions s inner join clients c on c.identifier = s.client" + lateralQ
 
 	if includeAuto == false {
 		// if approval email is set, this is not an auto-approval item
@@ -73,10 +81,10 @@ func (svc *serviceContext) getSubmissions(c *gin.Context) {
 	if q != "" {
 		// it only makes sense to apply query to id and name; others will be done with exact matches
 		conditions = append(conditions, "(identifier ~ ? or collection_name ~ ?)")
-		countQ = svc.DB.Raw("select count(id) as total from submissions where ", q, q)
+		countQ = svc.DB.Debug().Raw("select count(id) as total from submissions where ", q, q)
 	} else {
 		cntSql += " where " + strings.Join(conditions, " AND ")
-		countQ = svc.DB.Raw(cntSql)
+		countQ = svc.DB.Debug().Raw(cntSql)
 	}
 
 	if err := countQ.Scan(&resp.Total).Error; err != nil {
@@ -86,10 +94,9 @@ func (svc *serviceContext) getSubmissions(c *gin.Context) {
 	}
 
 	// now apply the same conditions and get submission data for the page range specified
-	statusSubQ := " (select ss.status from submission_state ss where ss.submission = s.identifier order by ss.created_at desc limit 1) as status "
-	sQ := "select s.id, s.identifier, s.storage, collection_name, s.created_at, c.name as client, c.approval_email as approval_email, "
-	sQ += statusSubQ
-	sQ += "from submissions s inner join clients c on c.identifier = s.client "
+	sQ := "select s.id, s.identifier, s.storage, collection_name, s.created_at, c.name as client, c.approval_email as approval_email, ss.status as status"
+	sQ += " from submissions s inner join clients c on c.identifier = s.client "
+	sQ += lateralQ
 	sQ += fmt.Sprintf(" where %s order by s.identifier asc offset %d limit %d", strings.Join(conditions, " AND "), startIdx, pageSize)
 	qTX := svc.DB.Debug().Raw(sQ)
 
@@ -121,8 +128,11 @@ func (svc *serviceContext) initFilter(filterStr string) []filterParam {
 		for _, f := range filterRequest {
 			bits := strings.Split(f, "=")
 			field := strings.TrimSpace(bits[0])
-			if field == "client" {
+			switch field {
+			case "client":
 				field = "c.name"
+			case "status":
+				field = "ss.status"
 			}
 			out = append(out, filterParam{Field: field, Value: strings.TrimSpace(bits[1])})
 		}

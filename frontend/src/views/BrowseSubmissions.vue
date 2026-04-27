@@ -2,7 +2,6 @@
    <div class="dashboard">
       <h1>Browse APTrust Submissions</h1>   
       <div class="content">
-         <div>{{  filters  }}</div>
          <DataTable :value="submissionStore.searchHits" ref="hitstable" dataKey="id"
             v-model:filters="filters" filterDisplay="menu" @filter="onFilter($event)"
             stripedRows showGridlines responsiveLayout="scroll"
@@ -37,11 +36,18 @@
             </Column>
             <Column field="client" header="Client" filterField="client" :showFilterMatchModes="false">
                <template #filter="{ filterModel, filterCallback }">
-                  <Select v-model="filterModel.value" @change="filterCallback()" :options="clients" placeholder="Select client" />
+                  <Select v-model="filterModel.value" @change="filterCallback()" :options="clients" placeholder="Select a client" />
                </template>
             </Column>
-            <Column field="storage" header="Storage" />
-            <Column field="status" header="Status">
+            <Column field="storage" header="Storage" filterField="storage" :showFilterMatchModes="false">
+               <template #filter="{ filterModel, filterCallback }">
+                  <Select v-model="filterModel.value" @change="filterCallback()" :options="storageOptions" placeholder="Select an option" />
+               </template>
+            </Column>
+            <Column field="status" header="Status" filterField="status" :showFilterMatchModes="false">
+               <template #filter="{ filterModel, filterCallback }">
+                  <Select v-model="filterModel.value" @change="filterCallback()" :options="system.submissionStatuses" placeholder="Select a status" />
+               </template>
                <template #body="slotProps">
                   <span v-if="slotProps.data.status">{{ slotProps.data.status }}</span>
                   <span v-else class="none">Unknown</span>   
@@ -78,7 +84,9 @@ const submissionStore = useSubmissionsStore()
 const system = useSystemStore()
 
 const filters = ref({
-    client: { value: null, matchMode: FilterMatchMode.EQUALS },
+   client: { value: null, matchMode: FilterMatchMode.EQUALS },
+   status: { value: null, matchMode: FilterMatchMode.EQUALS },
+   storage: { value: null, matchMode: FilterMatchMode.EQUALS },
 });
 
 const clients = computed( () => {
@@ -89,6 +97,14 @@ const clients = computed( () => {
    return out
 })
 
+const storageOptions = computed( () => {
+   let out = [] 
+   system.storageOptions.forEach( c=> {
+      out.push(c.value)
+   })
+   console.log(out)
+   return out
+})
 
 onMounted( () => {
    submissionStore.getSubmissions()
