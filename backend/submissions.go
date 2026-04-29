@@ -13,14 +13,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type client struct {
-	ID             int64  `json:"id"`
-	Identifier     string `json:"identifier"`
-	Name           string `json:"name"`
-	DefaultStorage string `json:"defaultStorage"`
-	ApprovalEmail  string `json:"approvalEmail"`
-}
-
 type storageOptions struct {
 	ID       int64  `json:"id"`
 	Value    string `json:"value"`
@@ -44,6 +36,84 @@ type searchResponse struct {
 	Hits  []searchHit `json:"hits"`
 }
 
+type client struct {
+	ID             int64  `json:"id"`
+	Identifier     string `json:"identifier"`
+	Name           string `json:"name"`
+	DefaultStorage string `json:"defaultStorage"`
+	ApprovalEmail  string `json:"approvalEmail"`
+}
+
+type submissionState struct {
+	ID         int64     `json:"id"`
+	Submission string    `json:"-"`
+	Status     string    `json:"status"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+type submissionFailure struct {
+	ID         int64     `json:"id"`
+	Submission string    `json:"-"`
+	Failure    string    `json:"failure"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+type file struct {
+	ID         int64     `json:"id"`
+	Name       string    `json:"name"`
+	Hash       string    `json:"hash"`
+	BagName    string    `json:"bagName"`
+	FileSize   int64     `json:"fileSize"`
+	Submission string    `json:"-"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+type aptFile struct {
+	ID         int64      `json:"id"`
+	FileName   string     `json:"fileName"`
+	Hash       string     `json:"hash"`
+	BagName    string     `json:"bagName"`
+	FileSize   int64      `json:"fileSize"`
+	APTAddedAt *time.Time `json:"aptAddedAt" gorm:"column:apt_added_at"`
+	CreatedAt  time.Time  `json:"createdAt"`
+}
+
+type submissionConflict struct {
+	ID                int64     `json:"id"`
+	Submission        string    `json:"-"`
+	NewFileID         int64     `json:"-" gorm:"column:new_file"`                          // key into files table
+	NewFile           file      `json:"newFile" gorm:"foreignKey:ID;references:NewFileID"` // file data
+	Basis             string    `json:"basis"`                                             // source of conflict; aptrust or local
+	ConflictingFileID int64     `json:"-" gorm:"column:conflicting_file"`                  // for aptrust basis, key into apt_files; for local key info files table
+	LocalConflict     *file     `json:"localConflict,omitempty" gorm:"-"`
+	APTConflict       *aptFile  `json:"aptConflict,omitempty" gorm:"-"`
+	CreatedAt         time.Time `json:"createdAt"`
+}
+
+type approval struct {
+	ID         int64     `json:"id"`
+	Submission string    `json:"-"`
+	Who        string    `json:"statuwhos"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+type submission struct {
+	ID             int64                 `json:"id"`
+	Identifier     string                `json:"-"`
+	Storage        string                `json:"storage"`
+	CollectionName string                `json:"collectionName"`
+	Client         string                `json:"-"`
+	ClientInfo     client                `json:"client" gorm:"foreignKey:Identifier;references:Client"`
+	BagCount       uint                  `json:"bagCount"`
+	FileCount      uint                  `json:"fileCount"`
+	TotalFileSize  int64                 `json:"totalFileSize"`
+	CreatedAt      time.Time             `json:"createdAt"`
+	Status         []submissionState     `json:"status" gorm:"foreignKey:Submission;references:Identifier"`
+	Failures       []submissionFailure   `json:"failures" gorm:"foreignKey:Submission;references:Identifier"`
+	Conflicts      []*submissionConflict `json:"conflicts" gorm:"foreignKey:Submission;references:Identifier"`
+	Approval       *approval             `json:"approval,omitempty" gorm:"foreignKey:Submission;references:Identifier"`
+}
+
 func (svc *serviceContext) getSubmissions(c *gin.Context) {
 	computeID := getComputeID(c)
 	q := strings.TrimSpace(c.Query("q"))
@@ -62,7 +132,7 @@ func (svc *serviceContext) getSubmissions(c *gin.Context) {
 	conditions := make([]string, 0)
 
 	// First get the count of records matching the query
-	lateralQ := " JOIN LATERAL (SELECT ss.* FROM submission_state ss WHERE s.identifier = ss.submission  ORDER BY ss.id DESC  LIMIT 1) ss ON true "
+	lateralQ := " JOIN LATERAL (SELECT ss.* FROM submission_states ss WHERE s.identifier = ss.submission  ORDER BY ss.id DESC  LIMIT 1) ss ON true "
 	cntSql := "select count(s.id) as total from submissions s inner join clients c on c.identifier = s.client" + lateralQ
 
 	if includeAuto == false {
@@ -141,7 +211,99 @@ func (svc *serviceContext) initFilter(filterStr string) []filterParam {
 	return out
 }
 
+func (svc *serviceContext) getSubmissionDetail(c *gin.Context) {
+	submissionID := c.Param("id")
+	// submissionID := "sid-d7loa41aq8ss73jdp53g" // TS
+	// submissionID := "sid-d7lo3ejsp7mc73ncli60" // approved
+	// submissionID := "sid-d7ockedkpgss73ktindg" // confiict
+	computeID := getComputeID(c)
+	log.Printf("INFO: user %s requesta details for submission %s", computeID, submissionID)
+
+	// first load main submission data..
+	var sub submission
+	if err := svc.DB.Debug().Preload("ClientInfo").Preload("Status", func(db *gorm.DB) *gorm.DB {
+		return db.Order("submission_states.created_at DESC")
+	}).Preload("Approval").Preload("Failures").Preload("Conflicts").Preload("Conflicts.NewFile").
+		Where("submissions.identifier=?", submissionID).First(&sub).Error; err != nil {
+		log.Printf("ERROR: unable to get submission %s detail: %s", submissionID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// next, get bag / file summary
+	if err := svc.DB.Raw("select count(*) bags_count from bags where submission=?", submissionID).Scan(&sub.BagCount).Error; err != nil {
+		log.Printf("ERROR: unable to get bag count for submission %s: %s", submissionID, err.Error())
+	}
+	var fileSummary struct {
+		FileCount     uint
+		TotalFileSize int64
+	}
+	if err := svc.DB.Raw("select count(id) file_count, sum(file_size) total_file_size from files where submission=?", submissionID).
+		Scan(&fileSummary).Error; err != nil {
+		log.Printf("ERROR: unable to get file summary for submission %s: %s", submissionID, err.Error())
+	} else {
+		sub.FileCount = fileSummary.FileCount
+		sub.TotalFileSize = fileSummary.TotalFileSize
+	}
+
+	// if there are conflict, resove the files involved:
+	//    basis 'aptrust' uses the apt_files table
+	//    basis 'local' is a conflict within the bag uses the files table
+	aptIDs := make([]int64, 0)
+	localIDs := make([]int64, 0)
+	for _, c := range sub.Conflicts {
+		if c.Basis == "aptrust" {
+			aptIDs = append(aptIDs, c.ConflictingFileID)
+		} else {
+			localIDs = append(localIDs, c.ConflictingFileID)
+		}
+	}
+
+	if len(aptIDs) > 0 {
+		var aptFiles []aptFile
+		if err := svc.DB.Where("id in ?", aptIDs).Find(&aptFiles).Error; err != nil {
+			log.Printf("ERROR: unable to get conflicting aptfiles data for submission %s: %s", submissionID, err.Error())
+		} else {
+			for _, aptF := range aptFiles {
+				for _, c := range sub.Conflicts {
+					if c.ConflictingFileID == aptF.ID {
+						c.APTConflict = &aptF
+						break
+					}
+				}
+			}
+		}
+	}
+	if len(localIDs) > 0 {
+		var localFiles []file
+		if err := svc.DB.Where("id in ?", localIDs).Find(&localFiles).Error; err != nil {
+			log.Printf("ERROR: unable to get conflicting local files data for submission %s: %s", submissionID, err.Error())
+		} else {
+			for _, localF := range localFiles {
+				for _, c := range sub.Conflicts {
+					if c.ConflictingFileID == localF.ID {
+						c.LocalConflict = &localF
+						break
+					}
+				}
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, sub)
+}
+
 func (svc *serviceContext) approveSubmission(c *gin.Context) {
+	submissionID := c.Param("id")
+	computeID := getComputeID(c)
+	log.Printf("INFO: user %s approves submission %s", computeID, submissionID)
+
+	// TODO
+
+	c.String(http.StatusNotImplemented, "not implemented")
+}
+
+func (svc *serviceContext) declineSubmission(c *gin.Context) {
 	submissionID := c.Param("id")
 	computeID := getComputeID(c)
 	log.Printf("INFO: user %s approves submission %s", computeID, submissionID)

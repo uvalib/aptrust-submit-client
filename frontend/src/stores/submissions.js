@@ -11,7 +11,8 @@ export const useSubmissionsStore = defineStore('submission', {
       includeAutoApproved: false,
       pageSize: 30,
       total: 0,
-      searchHits: []
+      searchHits: [],
+      detail: null
    }),
    getters: {
       filtersAsQueryParam: state => {
@@ -23,6 +24,7 @@ export const useSubmissionsStore = defineStore('submission', {
    actions: {
       getSubmissions() {
          this.working = true
+         this.detail = null
          var url = `/api/submissions?`
          var params = [] 
          if ( this.query != "" ) {
@@ -59,10 +61,20 @@ export const useSubmissionsStore = defineStore('submission', {
          this.includeAutoApproved = false 
          this.query = ""
          this.total = 0
+         this.detail = null
          this.getSubmissions()
       },
       getSubmissionDetail( identifier ) {
          console.log("load details for "+identifier)
+         this.working = true
+         axios.get("/api/submissions/"+identifier).then(response => {
+            this.detail = response.data
+            this.working = false
+         }).catch( e => {
+            const system = useSystemStore()
+            system.error = e
+            this.working = false
+         })
       }
    }
 })
