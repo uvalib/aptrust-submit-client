@@ -19,6 +19,20 @@ export const useSubmissionsStore = defineStore('submission', {
          let out = []
          state.filters.forEach( fv => out.push(`${fv.field}=${fv.value}`) )
          return JSON.stringify(out)
+      },
+      currentStatus: state => {
+         if ( !state.detail.status ) return "Unknown"
+         return state.detail.status[0].status.replace("-", " ")
+      },
+      totalSize: state => {
+         if ( !state.detail ) return "Unknown"
+         let sz =  state.detail.totalFileSize / 1000.0 / 1000.0
+         let units = "MB"
+         if ( sz > 1000 ) {
+            sz = sz / 1000.0
+            units = "GB"
+         }
+         return `${ sz.toFixed(3)} ${units}`
       }
    },
    actions: {
@@ -68,6 +82,7 @@ export const useSubmissionsStore = defineStore('submission', {
          console.log("load details for "+identifier)
          this.working = true
          axios.get("/api/submissions/"+identifier).then(response => {
+            console.log(response)
             this.detail = response.data
             this.working = false
          }).catch( e => {

@@ -10,7 +10,7 @@
       </div>
    </div>
    <div v-else class="spinner embed">
-      <h3 v-if="message">{{ props.message }}</h3>
+      <h3 v-if="message" v-html="props.message"></h3>
       <div class="spinner-animation">
          <div class="dot bounce1"></div>
          <div class="dot bounce2"></div>

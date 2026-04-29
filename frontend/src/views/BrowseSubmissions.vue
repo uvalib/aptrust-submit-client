@@ -49,7 +49,7 @@
                   <Select v-model="filterModel.value" @change="filterCallback()" :options="system.submissionStatuses" placeholder="Select a status" />
                </template>
                <template #body="slotProps">
-                  <span v-if="slotProps.data.status">{{ slotProps.data.status }}</span>
+                  <span class="status" v-if="slotProps.data.status">{{ slotProps.data.status.replace("-", " ") }}</span>
                   <span v-else class="none">Unknown</span>   
                </template>
             </Column>
@@ -153,6 +153,9 @@ const searchKeyPressed = ((event) => {
    }
    .nowrap {
       white-space: nowrap;
+   }
+   .status {
+      text-transform: capitalize;
    }
    .search-controls {
       display: flex;

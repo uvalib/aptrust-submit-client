@@ -1,21 +1,65 @@
 <template>
    <div class="details">
-      <h1>Submission {{ route.params.id }}</h1>  
+      <WaitSpinner v-if="submission.working" message="Please wait<br/>Loading submission details..." :overlay="true" />
+      <template v-else>
+         <h1>Submission {{ submission.detail.collectionName }}</h1>  
+         <div class="info">
+            <dl>
+               <dt>Client</dt>
+               <dd>{{ submission.detail.client.name }}</dd>
+
+               <dt>Created</dt>
+               <dd>{{ $formatDateTime(submission.detail.createdAt) }}</dd>
+
+               <dt>Storage</dt>
+               <dd>{{ submission.detail.storage }}</dd>
+
+               <dt>Status</dt>
+               <dd>
+                  <div class="status">
+                     <span>{{ submission.currentStatus }}</span>
+                     <StatusDialog :status="submission.detail.status" />
+                  </div>
+               </dd>
+
+               <dt>Failures</dt>
+               <dd>
+                  <div class="errors">
+                     <span v-if="submission.detail.failures.length == 0" class="none">None</span>
+                     <span v-else>{{ submission.detail.failures.length }}</span>
+                  </div>
+               </dd>
+
+               <dt>Conflicts</dt>
+               <dd>
+                  <div class="errors">
+                     <span v-if="submission.detail.conflicts.length == 0" class="none">None</span>
+                     <span v-else>{{ submission.detail.conflicts.length }}</span>
+                  </div>
+               </dd>
+
+               <dt>Contents</dt>
+               <dd>{{ submission.detail.bagCount }} bag(s) containing {{ submission.detail.fileCount }} files. Total size: {{ submission.totalSize }}</dd>
+            </dl>
+         </div>
+      </template>
    </div>
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onBeforeMount } from 'vue'
 import { useSubmissionsStore } from "@/stores/submissions"
 import { useSystemStore } from "@/stores/system"
 import { useRoute } from 'vue-router'
+import WaitSpinner from '@/components/WaitSpinner.vue'
+import StatusDialog from '@/components/StatusDialog.vue'
 
-const submissionStore = useSubmissionsStore()
+const submission = useSubmissionsStore()
 const system = useSystemStore()
 const route = useRoute()
 
-onMounted( () => {
-   submissionStore.getSubmissionDetail( route.params.id )
+onBeforeMount( () => {
+   submission.getSubmissionDetail( route.params.id )
 })
 </script>
 
@@ -24,6 +68,41 @@ onMounted( () => {
    margin: 0 auto 50px;
    min-height: 600px;
    text-align: left;
+
+   dl {
+      grid-template-columns: max-content 2fr;
+      display: inline-grid;
+      grid-column-gap:  2rem;
+      width: 100%;
+      margin: 0;
+
+      dt {
+         font-weight: bold;
+         text-align: right;
+         padding: 0.5rem 0;
+         white-space: nowrap;
+      }
+      dd {
+         margin: 0;
+         width: 100%;
+         text-align: left;
+         padding: 0.5rem 0;
+         .none {
+            font-style: italic;
+            color: $uva-grey-A;
+         }
+         .status {
+            display: flex;
+            flex-flow: row nowrap;
+            align-items: baseline;
+            justify-content: flex-start;
+            gap: 10px;
+            span {
+               text-transform: capitalize
+            }
+         }
+      }
+   }
 }
 @media only screen and (min-width: 768px) {
    .details {
