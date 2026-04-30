@@ -1,9 +1,9 @@
 <template>
    <Button size="small" severity="secondary" @click="showDialog = true" label="Details" iconPos="right"/>
    <Dialog v-model:visible="showDialog" :modal="true" header="Submission Conflicts" style="width: 95%;">
-      <DataTable :value="props.conflicts" dataKey="id" v-model:expandedRows="expandedRows"
+      <DataTable :value="submission.detail.conflicts" dataKey="id" v-model:expandedRows="expandedRows"
          stripedRows showGridlines responsiveLayout="scroll" :alwaysShowPaginator="false"
-         :lazy="false" :paginator="true" :rows="30" :totalRecords="props.conflicts.length"
+         :lazy="false" :paginator="true" :rows="30" :totalRecords="submission.detail.conflicts.length"
          paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
          currentPageReportTemplate="{first} - {last} of {totalRecords}" paginatorPosition="both"
       >
@@ -65,16 +65,11 @@ import { ref } from 'vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Panel from 'primevue/panel'
+import { useSubmissionsStore } from "@/stores/submissions"
 
+const submission = useSubmissionsStore()
 const showDialog = ref(false)
 const expandedRows = ref([])
-
-const props = defineProps({
-   conflicts: {
-      type: Array,
-      required: true
-   },
-})
 
 const conflictFileExists = ( (conflict) => {
    return (conflict.aptConflict || conflict.localConflict)

@@ -62,9 +62,9 @@ type file struct {
 	ID         int64     `json:"id"`
 	Name       string    `json:"fileName"`
 	Hash       string    `json:"hash"`
-	BagName    string    `json:"bagName"`
+	BagName    string    `json:"bagName" gorm:"primaryKey"`
 	FileSize   int64     `json:"fileSize"`
-	Submission string    `json:"-"`
+	Submission string    `json:"-" gorm:"primaryKey"`
 	CreatedAt  time.Time `json:"createdAt"`
 }
 
@@ -113,6 +113,23 @@ type submission struct {
 	Failures       []submissionFailure   `json:"failures" gorm:"foreignKey:Submission;references:Identifier"`
 	Conflicts      []*submissionConflict `json:"conflicts" gorm:"foreignKey:Submission;references:Identifier"`
 	Approval       *approval             `json:"approval,omitempty" gorm:"foreignKey:Submission;references:Identifier"`
+}
+
+type bagState struct {
+	ID         int64     `json:"id"`
+	Submission string    `json:"-" gorm:"primaryKey"`
+	BagName    string    `json:"-" gorm:"primaryKey"`
+	Status     string    `json:"status"`
+	CreatedAt  time.Time `json:"createdAt"`
+}
+
+type bag struct {
+	ID         int64      `json:"id"`
+	Submission string     `json:"-"`
+	BagName    string     `json:"name"`
+	Status     []bagState `json:"status" gorm:"foreignKey:BagName,Submission;references:BagName,Submission"`
+	Files      []file     `json:"files" gorm:"foreignKey:BagName,Submission;references:BagName,Submission"`
+	CreatedAt  time.Time  `json:"createdAt"`
 }
 
 func (svc *serviceContext) getSubmissions(c *gin.Context) {
@@ -222,7 +239,7 @@ func (svc *serviceContext) getSubmissionDetail(c *gin.Context) {
 
 	// first load main submission data..
 	var sub submission
-	if err := svc.DB.Debug().Preload("ClientInfo").Preload("Status", func(db *gorm.DB) *gorm.DB {
+	if err := svc.DB.Preload("ClientInfo").Preload("Status", func(db *gorm.DB) *gorm.DB {
 		return db.Order("submission_states.created_at DESC")
 	}).Preload("Approval").Preload("Failures").Preload("Conflicts").Preload("Conflicts.NewFile").
 		Where("submissions.identifier=?", submissionID).First(&sub).Error; err != nil {
@@ -298,6 +315,17 @@ func (svc *serviceContext) getSubmissionBags(c *gin.Context) {
 	submissionID := c.Param("id")
 	computeID := getComputeID(c)
 	log.Printf("INFO: user %s requests bag for submission %s", computeID, submissionID)
+
+	var bags []bag
+	if err := svc.DB.Preload("Files").Preload("Status", func(db *gorm.DB) *gorm.DB {
+		return db.Order("bag_states.created_at DESC")
+	}).Where("bags.submission=?", submissionID).Find(&bags).Error; err != nil {
+		log.Printf("ERROR: unable to get submission %s bags: %s", submissionID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, bags)
 }
 
 func (svc *serviceContext) approveSubmission(c *gin.Context) {

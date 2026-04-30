@@ -5,6 +5,7 @@ import axios from 'axios'
 export const useSubmissionsStore = defineStore('submission', {
    state: () => ({
       working: false,
+      loadingBags: false,
       offset: 0,
       query: "",
       filters: [],
@@ -12,7 +13,8 @@ export const useSubmissionsStore = defineStore('submission', {
       pageSize: 30,
       total: 0,
       searchHits: [],
-      detail: null
+      detail: null,
+      bags: null
    }),
    getters: {
       filtersAsQueryParam: state => {
@@ -39,6 +41,7 @@ export const useSubmissionsStore = defineStore('submission', {
       getSubmissions() {
          this.working = true
          this.detail = null
+         this.bags = null
          var url = `/api/submissions?`
          var params = [] 
          if ( this.query != "" ) {
@@ -63,7 +66,7 @@ export const useSubmissionsStore = defineStore('submission', {
             this.working = false
          }).catch( e => {
             const system = useSystemStore()
-            system.error = e
+            system.setError( e )
             this.working = false
          })
 
@@ -79,16 +82,36 @@ export const useSubmissionsStore = defineStore('submission', {
          this.getSubmissions()
       },
       getSubmissionDetail( identifier ) {
-         console.log("load details for "+identifier)
          this.working = true
+         this.bags = null
          axios.get("/api/submissions/"+identifier).then(response => {
-            console.log(response)
             this.detail = response.data
             this.working = false
          }).catch( e => {
             const system = useSystemStore()
-            system.error = e
+            system.setError( e )
             this.working = false
+         })
+      },
+      getBags( identifier ) {  
+         this.loadingBags = true
+         axios.get("/api/submissions/"+identifier+"/bags").then(response => {
+            // convert db structure into tree model:
+            // key, label, data, children 
+            this.bags = []
+            response.data.forEach( bag => {
+               let bagData = { createdAt: bag.createdAt, status: bag.status }
+               let node = { key: bag.id, label: bag.name, data: bagData, children: [], type: "bag" }
+               bag.files.forEach( bf => {
+                  node.children.push( {key: bf.id, label: bf.fileName, data: bf, type: "file"})
+               })
+               this.bags.push(node)
+            })
+            this.loadingBags = false
+         }).catch( e => {
+            const system = useSystemStore()
+            system.setError( e )
+            this.loadingBags = false
          })
       }
    }

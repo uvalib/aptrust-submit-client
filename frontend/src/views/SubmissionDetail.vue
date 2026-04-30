@@ -16,58 +16,76 @@
 
                <dt>Status</dt>
                <dd>
-                  <div class="status">
-                     <span>{{ submission.currentStatus }}</span>
-                     <StatusDialog :status="submission.detail.status" />
+                  <div class="button-data">
+                     <span class="caps">{{ submission.currentStatus }}</span>
+                     <StatusDialog />
                   </div>
                </dd>
 
                <dt>Failures</dt>
                <dd>
-                  <div class="errors">
+                  <div class="button-data">
                      <span v-if="submission.detail.failures.length == 0" class="none">None</span>
                      <template v-else>
                         <span class="error">{{ submission.detail.failures.length }}</span>
-                        <FailuresDialog  :failures="submission.detail.failures" />
+                        <FailuresDialog />
                      </template>
                   </div>
                </dd>
 
                <dt>Conflicts</dt>
                <dd>
-                  <div class="errors">
+                  <div class="button-data">
                      <span v-if="submission.detail.conflicts.length == 0" class="none">None</span>
                      <template v-else>
                         <span class="error">{{ submission.detail.conflicts.length }}</span>
-                        <ConflictsDialog :conflicts="submission.detail.conflicts" />
+                        <ConflictsDialog />
                      </template>
                   </div>
                </dd>
 
                <dt>Contents</dt>
-               <dd>{{ submission.detail.bagCount }} bag(s) containing {{ submission.detail.fileCount }} file(s). Total size: {{ submission.totalSize }}</dd>
+               <dd>
+                  <div class="button-data">
+                     <span>
+                        {{ submission.detail.bagCount }} bag(s) containing {{ submission.detail.fileCount }} file(s). Total size: {{ submission.totalSize }}
+                     </span>
+                     <div class="labeled-toggle">
+                        <ToggleSwitch inputId="bag-toggle" v-model="showBags" @update:modelValue="bagsToggled" />
+                        <label for="bag-toggle">Bag Details</label>
+                     </div>
+                  </div>
+               </dd>
             </dl>
          </div>
+         <BagsPanel v-if="showBags" />
       </template>
    </div>
 </template>
 
 <script setup>
-import { onBeforeMount } from 'vue'
+import { onBeforeMount, ref } from 'vue'
 import { useSubmissionsStore } from "@/stores/submissions"
-import { useSystemStore } from "@/stores/system"
 import { useRoute } from 'vue-router'
 import WaitSpinner from '@/components/WaitSpinner.vue'
 import StatusDialog from '@/components/StatusDialog.vue'
 import ConflictsDialog from '@/components/ConflictsDialog.vue'
 import FailuresDialog from '@/components/FailuresDialog.vue'
+import ToggleSwitch from 'primevue/toggleswitch'
+import BagsPanel from '@/components/BagsPanel.vue'
 
 const submission = useSubmissionsStore()
-const system = useSystemStore()
 const route = useRoute()
+const showBags = ref(false)
 
 onBeforeMount( () => {
    submission.getSubmissionDetail( route.params.id )
+})
+
+const bagsToggled = ( () => {
+   if (showBags.value) {
+      submission.getBags( route.params.id )  
+   }
 })
 </script>
 
@@ -77,6 +95,9 @@ onBeforeMount( () => {
    min-height: 600px;
    text-align: left;
 
+   .info {
+      margin-bottom: 20px;
+   }
    dl {
       grid-template-columns: max-content 2fr;
       display: inline-grid;
@@ -99,13 +120,20 @@ onBeforeMount( () => {
             font-style: italic;
             color: $uva-grey-A;
          }
-         .status, .errors {
+         .button-data {
             display: flex;
             flex-flow: row nowrap;
-            align-items: baseline;
+            align-items: center;
             justify-content: flex-start;
-            gap: 10px;
-            span {
+            gap: 25px;
+            .labeled-toggle {
+               display: flex;
+               flex-flow: row nowrap;
+               align-items: center;
+               justify-content: flex-start;
+               gap: 10px;   
+            }
+            span.caps {
                text-transform: capitalize
             }
             .p-button {

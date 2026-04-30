@@ -1,9 +1,9 @@
 <template>
    <Button size="small" icon="pi pi-history" severity="secondary" @click="showDialog = true" label="History" iconPos="right"/>
    <Dialog v-model:visible="showDialog" :modal="true" header="Submission Status History">
-      <DataTable :value="props.status" stripedRows showGridlines responsiveLayout="scroll" 
+      <DataTable :value="submission.detail.status" stripedRows showGridlines responsiveLayout="scroll" 
          :alwaysShowPaginator="false"
-         :lazy="false" :paginator="true" :rows="30" :totalRecords="props.status.length"
+         :lazy="false" :paginator="true" :rows="30" :totalRecords="submission.detail.status.length"
          paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
          currentPageReportTemplate="{first} - {last} of {totalRecords}" paginatorPosition="both"
       >
@@ -26,16 +26,10 @@ import Dialog from 'primevue/dialog'
 import { ref } from 'vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
+import { useSubmissionsStore } from "@/stores/submissions"
 
+const submission = useSubmissionsStore()
 const showDialog = ref(false)
-
-const props = defineProps({
-   status: {
-      type: Array,
-      required: true
-   },
-})
-
 </script>
 
 <style lang="scss" scoped>
