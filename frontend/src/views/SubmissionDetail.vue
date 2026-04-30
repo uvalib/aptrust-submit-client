@@ -26,7 +26,9 @@
                <dd>
                   <div class="errors">
                      <span v-if="submission.detail.failures.length == 0" class="none">None</span>
-                     <span v-else>{{ submission.detail.failures.length }}</span>
+                     <template v-else>
+                        <span class="error">{{ submission.detail.failures.length }}</span>
+                     </template>
                   </div>
                </dd>
 
@@ -34,12 +36,15 @@
                <dd>
                   <div class="errors">
                      <span v-if="submission.detail.conflicts.length == 0" class="none">None</span>
-                     <span v-else>{{ submission.detail.conflicts.length }}</span>
+                     <template v-else>
+                        <span class="error">{{ submission.detail.conflicts.length }}</span>
+                        <ConflictsDialog :conflicts="submission.detail.conflicts" />
+                     </template>
                   </div>
                </dd>
 
                <dt>Contents</dt>
-               <dd>{{ submission.detail.bagCount }} bag(s) containing {{ submission.detail.fileCount }} files. Total size: {{ submission.totalSize }}</dd>
+               <dd>{{ submission.detail.bagCount }} bag(s) containing {{ submission.detail.fileCount }} file(s). Total size: {{ submission.totalSize }}</dd>
             </dl>
          </div>
       </template>
@@ -53,6 +58,7 @@ import { useSystemStore } from "@/stores/system"
 import { useRoute } from 'vue-router'
 import WaitSpinner from '@/components/WaitSpinner.vue'
 import StatusDialog from '@/components/StatusDialog.vue'
+import ConflictsDialog from '@/components/ConflictsDialog.vue'
 
 const submission = useSubmissionsStore()
 const system = useSystemStore()
@@ -91,7 +97,7 @@ onBeforeMount( () => {
             font-style: italic;
             color: $uva-grey-A;
          }
-         .status {
+         .status, .errors {
             display: flex;
             flex-flow: row nowrap;
             align-items: baseline;
@@ -100,6 +106,10 @@ onBeforeMount( () => {
             span {
                text-transform: capitalize
             }
+         }
+         .error {
+            font-weight: bold;
+            color: $uva-red-A;
          }
       }
    }

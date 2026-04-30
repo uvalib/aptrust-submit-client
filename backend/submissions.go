@@ -60,7 +60,7 @@ type submissionFailure struct {
 
 type file struct {
 	ID         int64     `json:"id"`
-	Name       string    `json:"name"`
+	Name       string    `json:"fileName"`
 	Hash       string    `json:"hash"`
 	BagName    string    `json:"bagName"`
 	FileSize   int64     `json:"fileSize"`
