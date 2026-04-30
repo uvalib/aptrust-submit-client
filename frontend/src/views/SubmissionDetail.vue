@@ -28,6 +28,7 @@
                      <span v-if="submission.detail.failures.length == 0" class="none">None</span>
                      <template v-else>
                         <span class="error">{{ submission.detail.failures.length }}</span>
+                        <FailuresDialog  :failures="submission.detail.failures" />
                      </template>
                   </div>
                </dd>
@@ -59,6 +60,7 @@ import { useRoute } from 'vue-router'
 import WaitSpinner from '@/components/WaitSpinner.vue'
 import StatusDialog from '@/components/StatusDialog.vue'
 import ConflictsDialog from '@/components/ConflictsDialog.vue'
+import FailuresDialog from '@/components/FailuresDialog.vue'
 
 const submission = useSubmissionsStore()
 const system = useSystemStore()
@@ -105,6 +107,9 @@ onBeforeMount( () => {
             gap: 10px;
             span {
                text-transform: capitalize
+            }
+            .p-button {
+               padding: 2px 1rem;
             }
          }
          .error {

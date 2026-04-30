@@ -217,7 +217,7 @@ func (svc *serviceContext) getSubmissionDetail(c *gin.Context) {
 	// submissionID := "sid-d7lo3ejsp7mc73ncli60" // approved
 	// submissionID := "sid-d7ockedkpgss73ktindg" // confiict
 	computeID := getComputeID(c)
-	log.Printf("INFO: user %s requesta details for submission %s", computeID, submissionID)
+	log.Printf("INFO: user %s requests details for submission %s", computeID, submissionID)
 
 	// first load main submission data..
 	var sub submission
@@ -291,6 +291,12 @@ func (svc *serviceContext) getSubmissionDetail(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, sub)
+}
+
+func (svc *serviceContext) getSubmissionBags(c *gin.Context) {
+	submissionID := c.Param("id")
+	computeID := getComputeID(c)
+	log.Printf("INFO: user %s requests bag for submission %s", computeID, submissionID)
 }
 
 func (svc *serviceContext) approveSubmission(c *gin.Context) {

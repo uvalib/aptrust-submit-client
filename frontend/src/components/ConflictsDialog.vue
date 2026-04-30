@@ -2,7 +2,7 @@
    <Button size="small" severity="secondary" @click="showDialog = true" label="Details" iconPos="right"/>
    <Dialog v-model:visible="showDialog" :modal="true" header="Submission Conflicts" style="width: 95%;">
       <DataTable :value="props.conflicts" dataKey="id" v-model:expandedRows="expandedRows"
-         stripedRows showGridlines responsiveLayout="scroll"
+         stripedRows showGridlines responsiveLayout="scroll" :alwaysShowPaginator="false"
          :lazy="false" :paginator="true" :rows="30" :totalRecords="props.conflicts.length"
          paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
          currentPageReportTemplate="{first} - {last} of {totalRecords}" paginatorPosition="both"

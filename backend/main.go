@@ -36,6 +36,7 @@ func main() {
 		api.POST("/error", svc.logClientError)
 		api.GET("/submissions", svc.getSubmissions)
 		api.GET("/submissions/:id", svc.getSubmissionDetail)
+		api.GET("/submissions/:id/bags", svc.getSubmissionBags)
 		api.POST("/submissions/:id/approve", svc.approvalMiddleware, svc.approveSubmission)
 		api.POST("/submissions/:id/decline", svc.approvalMiddleware, svc.declineSubmission)
 	}
