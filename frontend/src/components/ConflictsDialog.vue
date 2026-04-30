@@ -19,11 +19,13 @@
             </template>
          </Column>
          <Column field="basis" header="Type" />
-          <Column header="Conflicting Filename" >
+         <Column header="Conflicting Filename" >
             <template #body="slotProps">
-               <span>{{ conflictFile(slotProps.data).fileName }}</span>
+               <span v-if="conflictFileExists(slotProps.data)">{{ conflictFile(slotProps.data).fileName }}</span>
+               <span v-else>Not Found</span>
             </template>
          </Column>
+         <Column field="ignored" header="Ignored" />
          <template #expansion="slotProps">
             <div class="file-details">
                <Panel header="Submission File">
@@ -39,7 +41,7 @@
                   </dl>
                </Panel>
                <Panel header="Conflicting File">
-                  <dl>
+                  <dl v-if="conflictFileExists(slotProps.data)">
                      <dt>Filename</dt>  
                      <dd>{{ conflictFile(slotProps.data).fileName }}</dd>
                      <dt>Size</dt>  
@@ -49,6 +51,7 @@
                      <dt>Bag name</dt>  
                      <dd>{{ conflictFile(slotProps.data).bagName }}</dd>
                   </dl>
+                  <div>Not Found</div>
                </Panel>
             </div>
          </template>
@@ -71,6 +74,10 @@ const props = defineProps({
       type: Array,
       required: true
    },
+})
+
+const conflictFileExists = ( (conflict) => {
+   return (conflict.aptConflict || conflict.localConflict)
 })
 
 const conflictFile = ( (conflict) => {

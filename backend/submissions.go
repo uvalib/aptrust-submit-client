@@ -87,6 +87,7 @@ type submissionConflict struct {
 	ConflictingFileID int64     `json:"-" gorm:"column:conflicting_file"`                  // for aptrust basis, key into apt_files; for local key info files table
 	LocalConflict     *file     `json:"localConflict,omitempty" gorm:"-"`
 	APTConflict       *aptFile  `json:"aptConflict,omitempty" gorm:"-"`
+	Ignored           bool      `json:"ignored"`
 	CreatedAt         time.Time `json:"createdAt"`
 }
 
