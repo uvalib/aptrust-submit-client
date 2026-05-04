@@ -8,9 +8,9 @@
   },
   "dependencies": {
     "@primeuix/themes": "^2.0.3",
-    "@vueuse/core": "^14.2.1",
-    "@vueuse/integrations": "^14.2.1",
-    "axios": "^1.15.2",
+    "@vueuse/core": "^14.3.0",
+    "@vueuse/integrations": "^14.3.0",
+    "axios": "^1.16.0",
     "dayjs": "^1.11.20",
     "jwt-decode": "^4.0.0",
     "pinia": "^3.0.4",

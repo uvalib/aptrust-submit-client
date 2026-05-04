@@ -25,7 +25,7 @@
                <dt>Filename:</dt>  
                <dd>{{ slotProps.node.label }}</dd>
                <dt>Size:</dt>  
-               <dd>{{ slotProps.node.data.fileSize }}</dd>
+               <dd>{{ sizeString(slotProps.node.data.fileSize) }}</dd>
                <dt>Hash:</dt>  
                <dd>{{ slotProps.node.data.hash }}</dd>
                <dt>Created:</dt>  
@@ -43,6 +43,16 @@ import Tree from 'primevue/tree'
 import WaitSpinner from './WaitSpinner.vue'
 
 const submission = useSubmissionsStore()
+
+const sizeString = ( (bytes) => {
+   let sz =  bytes / 1000.0 / 1000.0
+   let units = "MB"
+   if ( sz > 1000 ) {
+      sz = sz / 1000.0
+      units = "GB"
+   }
+   return `${ sz.toFixed(3)} ${units}`
+})
 </script>
 
 <style lang="scss" scoped>

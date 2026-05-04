@@ -185,7 +185,7 @@ func (svc *serviceContext) getSubmissions(c *gin.Context) {
 	sQ := "select s.id, s.identifier, s.storage, collection_name, s.created_at, c.name as client, c.approval_email as approval_email, ss.status as status"
 	sQ += " from submissions s inner join clients c on c.identifier = s.client "
 	sQ += lateralQ
-	sQ += fmt.Sprintf(" where %s order by s.identifier asc offset %d limit %d", strings.Join(conditions, " AND "), startIdx, pageSize)
+	sQ += fmt.Sprintf(" where %s order by s.created_at desc offset %d limit %d", strings.Join(conditions, " AND "), startIdx, pageSize)
 	qTX := svc.DB.Debug().Raw(sQ)
 
 	if err := qTX.Scan(&resp.Hits).Error; err != nil {
@@ -256,7 +256,8 @@ func (svc *serviceContext) getSubmissionDetail(c *gin.Context) {
 		FileCount     uint
 		TotalFileSize int64
 	}
-	if err := svc.DB.Raw("select count(id) file_count, sum(file_size) total_file_size from files where submission=?", submissionID).
+	if err := svc.DB.Raw("select count(id) file_count, sum(file_size) total_file_size from files where submission=? and name!=? and name!=?",
+		submissionID, "aptrust-description.txt", "aptrust-title.txt").
 		Scan(&fileSummary).Error; err != nil {
 		log.Printf("ERROR: unable to get file summary for submission %s: %s", submissionID, err.Error())
 	} else {
@@ -317,9 +318,11 @@ func (svc *serviceContext) getSubmissionBags(c *gin.Context) {
 	log.Printf("INFO: user %s requests bag for submission %s", computeID, submissionID)
 
 	var bags []bag
-	if err := svc.DB.Preload("Files").Preload("Status", func(db *gorm.DB) *gorm.DB {
-		return db.Order("bag_states.created_at DESC")
-	}).Where("bags.submission=?", submissionID).Find(&bags).Error; err != nil {
+	if err := svc.DB.Debug().Preload("Files", "name != ? and name !=?", "aptrust-description.txt", "aptrust-title.txt").
+		Preload("Status", func(db *gorm.DB) *gorm.DB {
+			return db.Order("bag_states.created_at DESC")
+		}).Where("bags.submission=?", submissionID).
+		Find(&bags).Error; err != nil {
 		log.Printf("ERROR: unable to get submission %s bags: %s", submissionID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
