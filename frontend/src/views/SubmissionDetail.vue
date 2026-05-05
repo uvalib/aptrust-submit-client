@@ -49,7 +49,7 @@
                   <div class="button-data">
                      <div class="bag-summary" >
                         <div>{{ submission.detail.bagCount }} bag(s) containing {{ submission.detail.fileCount }} file(s).</div>
-                        <div>Total size: {{ submission.totalSize }}</div>
+                        <div>Total size: {{ $formatFileSize(submission.detail.totalFileSize) }}</div>
                      </div>
                      <div class="labeled-toggle">
                         <ToggleSwitch inputId="bag-toggle" v-model="showBags" @update:modelValue="bagsToggled" />

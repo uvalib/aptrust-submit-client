@@ -25,7 +25,11 @@
                <span v-else>Not Found</span>
             </template>
          </Column>
-         <Column field="ignored" header="Ignored" />
+         <Column field="ignored" header="Ignored" class="centered">
+            <template #body="slotProps">
+               <span class="check pi pi-circle-fill" :class="{ignored: slotProps.data.ignored}"></span>
+            </template>
+         </Column>
          <template #expansion="slotProps">
             <div class="file-details">
                <Panel header="Submission File">
@@ -33,7 +37,7 @@
                      <dt>Filename</dt>  
                      <dd>{{ slotProps.data.newFile.fileName }}</dd>
                      <dt>Size</dt>  
-                     <dd>{{ slotProps.data.newFile.fileSize }}</dd>
+                     <dd>{{ $formatFileSize(slotProps.data.newFile.fileSize) }}</dd>
                      <dt>Hash</dt>  
                      <dd>{{ slotProps.data.newFile.hash }}</dd>
                      <dt>Bag name</dt>  
@@ -45,13 +49,13 @@
                      <dt>Filename</dt>  
                      <dd>{{ conflictFile(slotProps.data).fileName }}</dd>
                      <dt>Size</dt>  
-                     <dd>{{ conflictFile(slotProps.data).fileSize }}</dd>
+                     <dd>{{ $formatFileSize( conflictFile(slotProps.data).fileSize ) }}</dd>
                      <dt>Hash</dt>  
                      <dd>{{ conflictFile(slotProps.data).hash }}</dd>
                      <dt>Bag name</dt>  
                      <dd>{{ conflictFile(slotProps.data).bagName }}</dd>
                   </dl>
-                  <div>Not Found</div>
+                  <div v-else>Not Found</div>
                </Panel>
             </div>
          </template>
@@ -96,6 +100,17 @@ const conflictFile = ( (conflict) => {
    dd {
       margin-bottom: 15px;
    }
+}
+:deep(.check) {
+   color: $uva-red-A;
+   font-size: 1.3rem;
+}
+:deep(.check.ignored) {
+   color: $uva-green;
+   font-size: 1.3rem;
+}
+:deep(   .centered) {
+   text-align: center;
 }
 
 </style>

@@ -1,6 +1,7 @@
 import { createApp, markRaw } from 'vue'
 import { createPinia } from 'pinia'
 import formatDateTimePlugin from './plugins/formatdatetime'
+import formatFileSizePlugin from './plugins/formatfilesize'
 
 import App from './App.vue'
 import router from './router'
@@ -9,6 +10,7 @@ const app = createApp(App)
 
 app.use(router)
 app.use(formatDateTimePlugin)
+app.use(formatFileSizePlugin)
 
 // Primevue setup
 import PrimeVue from 'primevue/config'

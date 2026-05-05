@@ -26,16 +26,6 @@ export const useSubmissionsStore = defineStore('submission', {
          if ( !state.detail.status ) return "Unknown"
          return state.detail.status[0].status
       },
-      totalSize: state => {
-         if ( !state.detail ) return "Unknown"
-         let sz =  state.detail.totalFileSize / 1000.0 / 1000.0
-         let units = "MB"
-         if ( sz > 1000 ) {
-            sz = sz / 1000.0
-            units = "GB"
-         }
-         return `${ sz.toFixed(3)} ${units}`
-      }
    },
    actions: {
       getSubmissions() {
