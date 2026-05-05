@@ -17,7 +17,7 @@
                <dt>Status</dt>
                <dd>
                   <div class="button-data">
-                     <span class="caps">{{ submission.currentStatus }}</span>
+                     <span class="caps">{{ submission.currentStatus.replace("-", " ") }}</span>
                      <StatusDialog />
                   </div>
                </dd>
@@ -47,9 +47,10 @@
                <dt>Contents</dt>
                <dd>
                   <div class="button-data">
-                     <span>
-                        {{ submission.detail.bagCount }} bag(s) containing {{ submission.detail.fileCount }} file(s). Total size: {{ submission.totalSize }}
-                     </span>
+                     <div class="bag-summary" >
+                        <div>{{ submission.detail.bagCount }} bag(s) containing {{ submission.detail.fileCount }} file(s).</div>
+                        <div>Total size: {{ submission.totalSize }}</div>
+                     </div>
                      <div class="labeled-toggle">
                         <ToggleSwitch inputId="bag-toggle" v-model="showBags" @update:modelValue="bagsToggled" />
                         <label for="bag-toggle">Bag Details</label>
@@ -57,6 +58,7 @@
                   </div>
                </dd>
             </dl>
+            <ApprovePanel v-if="canApprove"/>
          </div>
          <BagsPanel v-if="showBags" />
       </template>
@@ -64,8 +66,9 @@
 </template>
 
 <script setup>
-import { onBeforeMount, ref } from 'vue'
+import { onBeforeMount, ref, computed } from 'vue'
 import { useSubmissionsStore } from "@/stores/submissions"
+import { useSystemStore } from "@/stores/system"
 import { useRoute } from 'vue-router'
 import WaitSpinner from '@/components/WaitSpinner.vue'
 import StatusDialog from '@/components/StatusDialog.vue'
@@ -73,13 +76,20 @@ import ConflictsDialog from '@/components/ConflictsDialog.vue'
 import FailuresDialog from '@/components/FailuresDialog.vue'
 import ToggleSwitch from 'primevue/toggleswitch'
 import BagsPanel from '@/components/BagsPanel.vue'
+import ApprovePanel from '@/components/ApprovePanel.vue'
 
 const submission = useSubmissionsStore()
+const system = useSystemStore()
 const route = useRoute()
 const showBags = ref(false)
 
 onBeforeMount( () => {
    submission.getSubmissionDetail( route.params.id )
+})
+
+const canApprove = computed( ()=> {
+   if (submission.currentStatus != "pending-approval") return false 
+   return system.canApproveSubmissions
 })
 
 const bagsToggled = ( () => {
@@ -97,13 +107,19 @@ const bagsToggled = ( () => {
 
    .info {
       margin-bottom: 20px;
+      display: flex;
+      flex-flow: row wrap;
+      gap: 20px;
+      justify-content: flex-start;
+      align-items: flex-start;
    }
+
    dl {
       grid-template-columns: max-content 2fr;
       display: inline-grid;
       grid-column-gap:  2rem;
-      width: 100%;
       margin: 0;
+      flex-grow: 1;
 
       dt {
          font-weight: bold;
@@ -120,12 +136,17 @@ const bagsToggled = ( () => {
             font-style: italic;
             color: $uva-grey-A;
          }
+         .bag-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+         }
          .button-data {
             display: flex;
             flex-flow: row nowrap;
             align-items: center;
             justify-content: flex-start;
-            gap: 25px;
+            gap: 30px;
             .labeled-toggle {
                display: flex;
                flex-flow: row nowrap;

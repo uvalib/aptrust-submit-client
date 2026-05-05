@@ -38,7 +38,7 @@ func main() {
 		api.GET("/submissions/:id", svc.getSubmissionDetail)
 		api.GET("/submissions/:id/bags", svc.getSubmissionBags)
 		api.POST("/submissions/:id/approve", svc.approvalMiddleware, svc.approveSubmission)
-		api.POST("/submissions/:id/decline", svc.approvalMiddleware, svc.declineSubmission)
+		api.POST("/submissions/:id/cancel", svc.approvalMiddleware, svc.cancelSubmission)
 	}
 
 	// Note: in dev mode, this is never actually used. The front end is served

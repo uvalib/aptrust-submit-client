@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/uvalib/aptrust-submit-bus-definitions/uvaaptsbus"
 	"gorm.io/gorm"
 )
 
@@ -100,7 +101,7 @@ type approval struct {
 
 type submission struct {
 	ID             int64                 `json:"id"`
-	Identifier     string                `json:"-"`
+	Identifier     string                `json:"identifier"`
 	Storage        string                `json:"storage"`
 	CollectionName string                `json:"collectionName"`
 	Client         string                `json:"-"`
@@ -334,19 +335,57 @@ func (svc *serviceContext) getSubmissionBags(c *gin.Context) {
 func (svc *serviceContext) approveSubmission(c *gin.Context) {
 	submissionID := c.Param("id")
 	computeID := getComputeID(c)
-	log.Printf("INFO: user %s approves submission %s", computeID, submissionID)
+	var req struct {
+		Storage string `json:"storage"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Printf("INFO: bad approve request: %s", err.Error())
+		c.String(http.StatusBadRequest, err.Error())
+		return
+	}
 
-	// TODO
+	var sub submission
+	if err := svc.DB.Preload("ClientInfo").Where("identifier=?", submissionID).First(&sub).Error; err != nil {
+		log.Printf("INFO: unable to load submission %s: %s", submissionID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
 
-	c.String(http.StatusNotImplemented, "not implemented")
+	extra := struct {
+		ComputeID string `json:"computeID"`
+		Storage   string `json:"storage"`
+	}{
+		ComputeID: computeID,
+		Storage:   req.Storage,
+	}
+
+	log.Printf("INFO: user %s approves submission %s with storage %s", computeID, submissionID, req.Storage)
+	if err := svc.publishWorkflowEvent(uvaaptsbus.EventSubmissionApproved, sub.ClientInfo.Identifier, sub.Identifier, extra); err != nil {
+		log.Printf("ERROR: unable to publsh approve event for submission %s: %s", submissionID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.String(http.StatusOK, "approved")
 }
 
-func (svc *serviceContext) declineSubmission(c *gin.Context) {
+func (svc *serviceContext) cancelSubmission(c *gin.Context) {
 	submissionID := c.Param("id")
 	computeID := getComputeID(c)
-	log.Printf("INFO: user %s approves submission %s", computeID, submissionID)
 
-	// TODO
+	var sub submission
+	if err := svc.DB.Preload("ClientInfo").Where("identifier=?", submissionID).First(&sub).Error; err != nil {
+		log.Printf("INFO: unable to load submission %s: %s", submissionID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
 
-	c.String(http.StatusNotImplemented, "not implemented")
+	log.Printf("INFO: user %s cancels submission %s", computeID, submissionID)
+	if err := svc.publishWorkflowEvent(uvaaptsbus.EventSubmissionAbandoned, sub.ClientInfo.Identifier, sub.Identifier, computeID); err != nil {
+		log.Printf("ERROR: unable to publsh abandon event for submission %s: %s", submissionID, err.Error())
+		c.String(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.String(http.StatusOK, "canceled")
 }

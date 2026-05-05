@@ -24,7 +24,7 @@ export const useSubmissionsStore = defineStore('submission', {
       },
       currentStatus: state => {
          if ( !state.detail.status ) return "Unknown"
-         return state.detail.status[0].status.replace("-", " ")
+         return state.detail.status[0].status
       },
       totalSize: state => {
          if ( !state.detail ) return "Unknown"
@@ -112,6 +112,22 @@ export const useSubmissionsStore = defineStore('submission', {
             const system = useSystemStore()
             system.setError( e )
             this.loadingBags = false
+         })
+      },
+      cancel() {
+         axios.post("/api/submissions/"+ this.detail.identifier+"/cancel").then(() => {
+            this.detail.status.unshift({createdAt: new Date(), status: "abandoned"})
+         }).catch( e => {
+            const system = useSystemStore()
+            system.setError( e )
+         })
+      },
+      approve( storage ) {
+         axios.post("/api/submissions/"+this.detail.identifier+"/approve", {storage: storage}).then(() => {
+            this.detail.status.unshift({createdAt: new Date(), status: "submitting"})
+         }).catch( e => {
+            const system = useSystemStore()
+            system.setError( e )
          })
       }
    }

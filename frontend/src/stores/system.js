@@ -82,7 +82,6 @@ export const useSystemStore = defineStore('system', {
                   if (err.response && err.response.status == 401) {
                   console.log("REQUEST FAILED WITH 401")
                      this.signOut()
-                     system.working = false
                      // this.authenticate() // maybe reauth? prefer just to expire tho
                      return new Promise(() => { })
                   }
@@ -145,10 +144,9 @@ export const useSystemStore = defineStore('system', {
             return
          }
 
-         const user = useUserStore()
-         if (user.isSignedIn) {
+         if (this.isSignedIn) {
             err.signedIn = true
-            err.user = user.signedInUser
+            err.user = this.signedInUser
          } else {
             err.signedIn = false
          }

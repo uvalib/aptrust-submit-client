@@ -109,7 +109,6 @@ const storageOptions = computed( () => {
    system.storageOptions.forEach( c=> {
       out.push(c.value)
    })
-   console.log(out)
    return out
 })
 
