@@ -4,14 +4,10 @@
       <div class="message">
          <p>You have successfuly signed out of APTrust Submissions.</p>
       </div>
-      <Button @click="signinClick">Sign in with NetBadge</Button>
-   </div>
+\   </div>
 </template>
 
 <script setup>
-function signinClick() {
-   window.location.href = "/authenticate"
-}
 </script>
 
 <style scoped lang="scss">

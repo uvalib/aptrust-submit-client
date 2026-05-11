@@ -169,8 +169,9 @@ func (svc *serviceContext) getSubmissions(c *gin.Context) {
 
 	if q != "" {
 		// it only makes sense to apply query to id and name; others will be done with exact matches
-		conditions = append(conditions, "(identifier ~ ? or collection_name ~ ?)")
-		countQ = svc.DB.Debug().Raw("select count(id) as total from submissions where ", q, q)
+		conditions = append(conditions, "collection_name ~ ?")
+		cntSql += " where " + strings.Join(conditions, " AND ")
+		countQ = svc.DB.Debug().Raw(cntSql, q)
 	} else {
 		cntSql += " where " + strings.Join(conditions, " AND ")
 		countQ = svc.DB.Debug().Raw(cntSql)
@@ -183,13 +184,18 @@ func (svc *serviceContext) getSubmissions(c *gin.Context) {
 	}
 
 	// now apply the same conditions and get submission data for the page range specified
+	var searchQ *gorm.DB
 	sQ := "select s.id, s.identifier, s.storage, collection_name, s.created_at, c.name as client, c.approval_email as approval_email, ss.status as status"
 	sQ += " from submissions s inner join clients c on c.identifier = s.client "
 	sQ += lateralQ
 	sQ += fmt.Sprintf(" where %s order by s.created_at desc offset %d limit %d", strings.Join(conditions, " AND "), startIdx, pageSize)
-	qTX := svc.DB.Debug().Raw(sQ)
+	if q != "" {
+		searchQ = svc.DB.Debug().Raw(sQ, q)
+	} else {
+		searchQ = svc.DB.Debug().Raw(sQ)
+	}
 
-	if err := qTX.Scan(&resp.Hits).Error; err != nil {
+	if err := searchQ.Scan(&resp.Hits).Error; err != nil {
 		log.Printf("ERROR: get submissions failed: %s", err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return

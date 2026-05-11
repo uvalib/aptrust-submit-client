@@ -50,6 +50,7 @@ export const useSubmissionsStore = defineStore('submission', {
          params.push(`limit=${this.pageSize}`)
 
          url += params.join("&")
+         console.log(url)
          axios.get(url).then(response => {
             this.total = response.data.total
             this.searchHits = response.data.hits

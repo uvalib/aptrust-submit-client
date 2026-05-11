@@ -27,7 +27,6 @@
                   </div>
                </div>
             </template>
-            <Column field="identifier" header="Identifier" />
             <Column field="collectionName" header="Name">
                <template #body="slotProps">
                   <span v-if="slotProps.data.collectionName">{{ slotProps.data.collectionName }}</span>
@@ -39,11 +38,6 @@
                   <Select v-model="filterModel.value" @change="filterCallback()" :options="clients" placeholder="Select a client" />
                </template>
             </Column>
-            <Column field="storage" header="Storage" filterField="storage" :showFilterMatchModes="false">
-               <template #filter="{ filterModel, filterCallback }">
-                  <Select v-model="filterModel.value" @change="filterCallback()" :options="storageOptions" placeholder="Select an option" />
-               </template>
-            </Column>
             <Column field="status" header="Status" filterField="status" :showFilterMatchModes="false">
                <template #filter="{ filterModel, filterCallback }">
                   <Select v-model="filterModel.value" @change="filterCallback()" :options="system.submissionStatuses" placeholder="Select a status" />
@@ -51,12 +45,6 @@
                <template #body="slotProps">
                   <span class="status" v-if="slotProps.data.status">{{ slotProps.data.status.replace("-", " ") }}</span>
                   <span v-else class="none">Unknown</span>   
-               </template>
-            </Column>
-            <Column field="approvalEmail" header="Approval Email" class="nowrap">
-               <template #body="slotProps">
-                  <span v-if="slotProps.data.approvalEmail">{{ slotProps.data.approvalEmail }}</span>
-                  <span v-else class="none">N/A</span>
                </template>
             </Column>
             <Column field="createdAt" header="Created" class="nowrap">
@@ -100,14 +88,6 @@ const clients = computed( () => {
    let out = [] 
    system.clients.forEach( c=> {
       out.push(c.name)
-   })
-   return out
-})
-
-const storageOptions = computed( () => {
-   let out = [] 
-   system.storageOptions.forEach( c=> {
-      out.push(c.value)
    })
    return out
 })
