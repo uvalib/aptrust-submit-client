@@ -4,7 +4,7 @@
       <div class="message">
          <p>You have successfuly signed out of APTrust Submissions.</p>
       </div>
-\   </div>
+   </div>
 </template>
 
 <script setup>

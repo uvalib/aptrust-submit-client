@@ -94,7 +94,7 @@ type submissionConflict struct {
 type approval struct {
 	ID         int64     `json:"id"`
 	Submission string    `json:"-"`
-	Who        string    `json:"statuwhos"`
+	Who        string    `json:"who"`
 	CreatedAt  time.Time `json:"createdAt"`
 }
 
@@ -254,7 +254,7 @@ func (svc *serviceContext) getSubmissionDetail(c *gin.Context) {
 	var sub submission
 	if err := svc.DB.Preload("ClientInfo").Preload("Status", func(db *gorm.DB) *gorm.DB {
 		return db.Order("submission_states.created_at DESC")
-	}).Preload("Approval").Preload("Failures").Preload("Conflicts").Preload("Conflicts.NewFile").
+	}).Preload("Approval").Preload("Failures").Preload("Conflicts").Preload("Conflicts.NewFile").Preload("Approval").
 		Where("submissions.identifier=?", submissionID).First(&sub).Error; err != nil {
 		log.Printf("ERROR: unable to get submission %s detail: %s", submissionID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())

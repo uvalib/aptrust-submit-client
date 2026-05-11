@@ -2,18 +2,31 @@
    <div class="details">
       <WaitSpinner v-if="submission.working" message="Please wait<br/>Loading submission details..." :overlay="true" />
       <template v-else>
-         <h1>Submission {{ submission.detail.collectionName }}</h1>  
+         <h1>AP Trust Submission Detail</h1>
          <div class="info">
             <dl>
+               <dt>Submission</dt>
+               <dd>{{ submission.detail.collectionName }}</dd>
+               <dt>Identifier</dt>
+               <dd>{{ submission.detail.identifier }}</dd>
                <dt>Client</dt>
                <dd>{{ submission.detail.client.name }}</dd>
+               <template v-if="submission.detail.client.approvalEmail">
+                  <dt>Approval Email</dt>
+                  <dd>{{ submission.detail.client.approvalEmail }}</dd>
+               </template>
+               <dt>Default Storage</dt>
+               <dd>{{ submission.detail.storage }}</dd>
 
                <dt>Created</dt>
                <dd>{{ $formatDateTime(submission.detail.createdAt) }}</dd>
 
-               <dt>Storage</dt>
-               <dd>{{ submission.detail.storage }}</dd>
-
+               <template v-if="submission.detail.approval">
+                  <dt>Approved By</dt>
+                  <dd>{{ submission.detail.approval.who }}</dd>
+                  <dt>Approved On</dt>
+                  <dd>{{ $formatDateTime(submission.detail.approval.createdAt) }}</dd>
+               </template>
                <dt>Status</dt>
                <dd>
                   <div class="button-data">
@@ -51,16 +64,12 @@
                         <div>{{ submission.detail.bagCount }} bag(s) containing {{ submission.detail.fileCount }} file(s).</div>
                         <div>Total size: {{ $formatFileSize(submission.detail.totalFileSize) }}</div>
                      </div>
-                     <div class="labeled-toggle">
-                        <ToggleSwitch inputId="bag-toggle" v-model="showBags" @update:modelValue="bagsToggled" />
-                        <label for="bag-toggle">Bag Details</label>
-                     </div>
                   </div>
                </dd>
             </dl>
             <ApprovePanel v-if="canApprove"/>
          </div>
-         <BagsPanel v-if="showBags" />
+         <BagsPanel />
       </template>
    </div>
 </template>
@@ -85,17 +94,12 @@ const showBags = ref(false)
 
 onBeforeMount( () => {
    submission.getSubmissionDetail( route.params.id )
+   submission.getBags( route.params.id )  
 })
 
 const canApprove = computed( ()=> {
    if (submission.currentStatus != "pending-approval") return false 
-   return true// system.canApproveSubmissions
-})
-
-const bagsToggled = ( () => {
-   if (showBags.value) {
-      submission.getBags( route.params.id )  
-   }
+   return system.canApproveSubmissions
 })
 </script>
 
