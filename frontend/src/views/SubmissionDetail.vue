@@ -9,6 +9,8 @@
                <dd>{{ submission.detail.collectionName }}</dd>
                <dt>Identifier</dt>
                <dd>{{ submission.detail.identifier }}</dd>
+               <dt>Created</dt>
+               <dd>{{ $formatDateTime(submission.detail.createdAt) }}</dd>
                <dt>Client</dt>
                <dd>{{ submission.detail.client.name }}</dd>
                <template v-if="submission.detail.client.approvalEmail">
@@ -18,8 +20,7 @@
                <dt>Default Storage</dt>
                <dd>{{ submission.detail.storage }}</dd>
 
-               <dt>Created</dt>
-               <dd>{{ $formatDateTime(submission.detail.createdAt) }}</dd>
+   
 
                <template v-if="submission.detail.approval">
                   <dt>Approved By</dt>
@@ -54,16 +55,6 @@
                         <span class="error">{{ submission.detail.conflicts.length }}</span>
                         <ConflictsDialog />
                      </template>
-                  </div>
-               </dd>
-
-               <dt>Contents</dt>
-               <dd>
-                  <div class="button-data">
-                     <div class="bag-summary" >
-                        <div>{{ submission.detail.bagCount }} bag(s) containing {{ submission.detail.fileCount }} file(s).</div>
-                        <div>Total size: {{ $formatFileSize(submission.detail.totalFileSize) }}</div>
-                     </div>
                   </div>
                </dd>
             </dl>
