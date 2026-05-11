@@ -22,14 +22,13 @@ type storageOptions struct {
 }
 
 type searchHit struct {
-	ID             int64     `json:"id"`
-	Identifier     string    `json:"identifier"`
-	Storage        string    `json:"storage"`
-	CollectionName string    `json:"collectionName"`
-	Client         string    `json:"client"`
-	ApprovalEmail  string    `json:"approvalEmail"`
-	Status         string    `json:"status"`
-	CreatedAt      time.Time `json:"createdAt"`
+	ID              int64     `json:"id"`
+	Identifier      string    `json:"identifier"`
+	CollectionName  string    `json:"collectionName"`
+	Client          string    `json:"client"`
+	Status          string    `json:"status"`
+	StatusCreatedAt time.Time `json:"statusCreatedAt"`
+	CreatedAt       time.Time `json:"createdAt"`
 }
 
 type searchResponse struct {
@@ -137,6 +136,8 @@ func (svc *serviceContext) getSubmissions(c *gin.Context) {
 	computeID := getComputeID(c)
 	q := strings.TrimSpace(c.Query("q"))
 	filterStr := c.Query("filters")
+	sortStr := c.Query("sort")
+	orderStr := c.Query("order")
 	includeAuto, _ := strconv.ParseBool(c.Query("includeauto"))
 	startIdx, _ := strconv.ParseInt(c.Query("start"), 10, 64)
 	pageSize, _ := strconv.ParseInt(c.Query("limit"), 10, 64)
@@ -183,12 +184,17 @@ func (svc *serviceContext) getSubmissions(c *gin.Context) {
 		return
 	}
 
+	sortField := "s.created_at"
+	if sortStr == "statusCreatedAt" {
+		sortField = "ss.created_at"
+	}
+
 	// now apply the same conditions and get submission data for the page range specified
 	var searchQ *gorm.DB
-	sQ := "select s.id, s.identifier, s.storage, collection_name, s.created_at, c.name as client, c.approval_email as approval_email, ss.status as status"
+	sQ := "select s.id, s.identifier, collection_name, s.created_at, c.name as client, ss.status as status, ss.created_at as status_created_at"
 	sQ += " from submissions s inner join clients c on c.identifier = s.client "
 	sQ += lateralQ
-	sQ += fmt.Sprintf(" where %s order by s.created_at desc offset %d limit %d", strings.Join(conditions, " AND "), startIdx, pageSize)
+	sQ += fmt.Sprintf(" where %s order by %s %s offset %d limit %d", strings.Join(conditions, " AND "), sortField, orderStr, startIdx, pageSize)
 	if q != "" {
 		searchQ = svc.DB.Debug().Raw(sQ, q)
 	} else {

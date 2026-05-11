@@ -8,7 +8,7 @@
          </div>
          <div class="site-link">
             <router-link to="/">
-               APTrust Submissions
+               AP Trust Submission
             </router-link>
          </div>
       </div>

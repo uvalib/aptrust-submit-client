@@ -11,6 +11,8 @@ export const useSubmissionsStore = defineStore('submission', {
       filters: [],
       includeAutoApproved: false,
       pageSize: 30,
+      sortField: "createdAt",
+      sortOrder: "desc",
       total: 0,
       searchHits: [],
       detail: null,
@@ -26,6 +28,10 @@ export const useSubmissionsStore = defineStore('submission', {
          if ( !state.detail.status ) return "Unknown"
          return state.detail.status[0].status
       },
+      sortOrderInt: state => {
+         if (state.sortOrder == "desc") return -1
+         return 1
+      }
    },
    actions: {
       getSubmissions() {
@@ -48,6 +54,8 @@ export const useSubmissionsStore = defineStore('submission', {
          }
          params.push(`start=${this.offset}`)
          params.push(`limit=${this.pageSize}`)
+         params.push(`sort=${this.sortField}`)
+         params.push(`order=${this.sortOrder}`)
 
          url += params.join("&")
          console.log(url)
