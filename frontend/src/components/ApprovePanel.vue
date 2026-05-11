@@ -1,5 +1,15 @@
 <template>
    <Panel header="Submission Approval">
+      <div class="notes">
+         <p>These materials have been queued for submission to AP Trust.</p>
+         <p>
+            Please review them to ensure that they have been submitted in accordance with the Library's preservation plans 
+            and that the submission is complete.  To access individual files, please consult the originating system. 
+         </p>
+         <p>When you're satisfied that the materials are complete, should be sent to AP Trust, and you have selected the appropriate storage option, please click "Submit".</p>
+         <p>The remainder of the submission process may take several days.</p>
+         <p><b>Note</b>: Your selection of storage location cannot be changed once submitted.</p>
+      </div>
       <div class="approve">
          <div class="storage">
             <label for="apt-storage">Storage</label>
@@ -66,6 +76,17 @@ const approveClicked = (()=> {
    display: flex;
    flex-direction: column;
    gap: 20px;
+}
+.notes {
+   display: flex;
+   flex-direction: column;
+   gap: 10px;
+   margin-bottom: 20px;
+   p {
+      margin: 0;
+      padding: 0;
+      word-wrap: break-word;
+   }
 }
 .storage {
    display: flex;

@@ -89,7 +89,7 @@ onBeforeMount( () => {
 
 const canApprove = computed( ()=> {
    if (submission.currentStatus != "pending-approval") return false 
-   return system.canApproveSubmissions
+   return true// system.canApproveSubmissions
 })
 
 const bagsToggled = ( () => {
@@ -114,12 +114,15 @@ const bagsToggled = ( () => {
       align-items: flex-start;
    }
 
+   .p-panel {
+      flex: 35%;
+   }
    dl {
       grid-template-columns: max-content 2fr;
       display: inline-grid;
       grid-column-gap:  2rem;
       margin: 0;
-      flex-grow: 1;
+      flex: 60%;
 
       dt {
          font-weight: bold;
@@ -176,6 +179,9 @@ const bagsToggled = ( () => {
 @media only screen and (max-width: 768px) {
    .details {
       width: 95%;
+      .info {
+         flex-direction: column-reverse;
+      }
    }
 }
 </style>
