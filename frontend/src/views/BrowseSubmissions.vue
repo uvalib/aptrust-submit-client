@@ -57,7 +57,7 @@
             <Column field="createdAt" header="Created" class="nowrap" sortable>
                <template #body="slotProps">{{ $formatDateTime(slotProps.data.createdAt) }}</template>
             </Column>
-            <Column field="statusCreatedAt" header="Uodated" class="nowrap" sortable>
+            <Column field="statusCreatedAt" header="Updated" class="nowrap" sortable>
                <template #body="slotProps">
                   <span>{{ $formatDateTime(slotProps.data.statusCreatedAt)  }}</span>
                </template>
