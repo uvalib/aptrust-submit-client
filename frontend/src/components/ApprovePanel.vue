@@ -59,7 +59,7 @@ const cancelClicked = (()=> {
 
 const approveClicked = (()=> {
    confirm.require({
-      message: "All bags associated with this siubmission will be sent to APTrust. Are you sure?",
+      message: "All bags associated with this submission will be sent to APTrust. Are you sure?",
       header: 'Confirm APTrust Submission',
       icon: 'pi pi-question-circle',
       rejectClass: 'p-button-secondary',
