@@ -128,7 +128,8 @@ type bag struct {
 	Submission string     `json:"-"`
 	BagName    string     `json:"name"`
 	Status     []bagState `json:"status" gorm:"foreignKey:BagName,Submission;references:BagName,Submission"`
-	Files      []file     `json:"files" gorm:"foreignKey:BagName,Submission;references:BagName,Submission"`
+	Files      []file     `json:"files,omitempty" gorm:"foreignKey:BagName,Submission;references:BagName,Submission"`
+	APTFiles   []aptFile  `json:"aptFiles,omitempty" gorm:"-"`
 	CreatedAt  time.Time  `json:"createdAt"`
 }
 
@@ -269,13 +270,26 @@ func (svc *serviceContext) getSubmissionDetail(c *gin.Context) {
 		FileCount     uint
 		TotalFileSize int64
 	}
-	if err := svc.DB.Raw("select count(id) file_count, sum(file_size) total_file_size from files where submission=? and name!=? and name!=?",
-		submissionID, "aptrust-description.txt", "aptrust-title.txt").
-		Scan(&fileSummary).Error; err != nil {
-		log.Printf("ERROR: unable to get file summary for submission %s: %s", submissionID, err.Error())
+
+	if strings.Contains(sub.CollectionName, "virginia.edu.tracksys") {
+		log.Printf("INFO: submission %s : %s is a legacy tracksys submission; pull file info from apt_files", sub.Identifier, sub.CollectionName)
+		bagName := fmt.Sprintf("virginia.edu/%s", sub.CollectionName)
+		if err := svc.DB.Raw("select count(id) file_count, sum(file_size) total_file_size from apt_files where bag_name=?", bagName).
+			Scan(&fileSummary).Error; err != nil {
+			log.Printf("ERROR: unable to get file summary for submission %s: %s", submissionID, err.Error())
+		} else {
+			sub.FileCount = fileSummary.FileCount
+			sub.TotalFileSize = fileSummary.TotalFileSize
+		}
 	} else {
-		sub.FileCount = fileSummary.FileCount
-		sub.TotalFileSize = fileSummary.TotalFileSize
+		if err := svc.DB.Raw("select count(id) file_count, sum(file_size) total_file_size from files where submission=? and name!=? and name!=?",
+			submissionID, "aptrust-description.txt", "aptrust-title.txt").
+			Scan(&fileSummary).Error; err != nil {
+			log.Printf("ERROR: unable to get file summary for submission %s: %s", submissionID, err.Error())
+		} else {
+			sub.FileCount = fileSummary.FileCount
+			sub.TotalFileSize = fileSummary.TotalFileSize
+		}
 	}
 
 	// if there are conflict, resove the files involved:
@@ -330,16 +344,48 @@ func (svc *serviceContext) getSubmissionBags(c *gin.Context) {
 	computeID := getComputeID(c)
 	log.Printf("INFO: user %s requests bag for submission %s", computeID, submissionID)
 
-	var bags []bag
-	if err := svc.DB.Debug().Preload("Files", "name != ? and name !=?", "aptrust-description.txt", "aptrust-title.txt").
-		Preload("Status", func(db *gorm.DB) *gorm.DB {
-			return db.Order("bag_states.created_at DESC")
-		}).Where("bags.submission=?", submissionID).
-		Find(&bags).Error; err != nil {
-		log.Printf("ERROR: unable to get submission %s bags: %s", submissionID, err.Error())
+	var sub submission
+	if err := svc.DB.Where("identifier=?", submissionID).First(&sub).Error; err != nil {
+		log.Printf("ERROR: unable to load submission %s: %s", submissionID, err.Error())
 		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	var bags []bag
+	if strings.Contains(sub.CollectionName, "virginia.edu.tracksys") {
+		log.Printf("INFO: submission %s : %s is a legacy tracksys submission; pull bags and status", sub.Identifier, sub.CollectionName)
+		if err := svc.DB.Preload("Status", func(db *gorm.DB) *gorm.DB {
+			return db.Order("bag_states.id DESC")
+		}).Where("bags.submission=?", submissionID).
+			Find(&bags).Error; err != nil {
+			log.Printf("ERROR: unable to get legacy submission %s bags: %s", submissionID, err.Error())
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+		log.Printf("INFO: get apt_files for legacy submission %s", sub.CollectionName)
+		for idx, b := range bags {
+			bagName := fmt.Sprintf("virginia.edu/%s", b.BagName)
+			var files []aptFile
+			if err := svc.DB.Debug().Where("bag_name=?", bagName).Find(&files).Error; err != nil {
+				log.Printf("ERROR: unable to get legacy submission bag %s files: %s", bagName, err.Error())
+			} else {
+				log.Printf("INFO: files %+v", files)
+				bags[idx].APTFiles = files
+			}
+		}
+	} else {
+		if err := svc.DB.Preload("Files", "name != ? and name !=?", "aptrust-description.txt", "aptrust-title.txt").
+			Preload("Status", func(db *gorm.DB) *gorm.DB {
+				return db.Order("bag_states.id DESC")
+			}).Where("bags.submission=?", submissionID).
+			Find(&bags).Error; err != nil {
+			log.Printf("ERROR: unable to get submission %s bags: %s", submissionID, err.Error())
+			c.String(http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
+	log.Printf("INFO: %+v", bags)
 
 	c.JSON(http.StatusOK, bags)
 }

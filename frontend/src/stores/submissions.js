@@ -101,9 +101,15 @@ export const useSubmissionsStore = defineStore('submission', {
             response.data.forEach( bag => {
                let bagData = { createdAt: bag.createdAt, status: bag.status }
                let node = { key: bag.id, label: bag.name, data: bagData, children: [], type: "bag" }
-               bag.files.forEach( bf => {
-                  node.children.push( {key: bf.id, label: bf.fileName, data: bf, type: "file"})
-               })
+               if ( bag.files ) {
+                  bag.files.forEach( bf => {
+                     node.children.push( {key: bf.id, label: bf.fileName, data: bf, type: "file"})
+                  })
+               } else if (bag.aptFiles) {
+                  bag.aptFiles.forEach( bf => {
+                     node.children.push( {key: bf.id, label: bf.fileName, data: bf, type: "file"})
+                  })   
+               }
                this.bags.push(node)
             })
             this.loadingBags = false
