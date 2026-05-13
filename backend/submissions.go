@@ -253,7 +253,7 @@ func (svc *serviceContext) getSubmissionDetail(c *gin.Context) {
 	// first load main submission data..
 	var sub submission
 	if err := svc.DB.Preload("ClientInfo").Preload("Status", func(db *gorm.DB) *gorm.DB {
-		return db.Order("submission_states.created_at DESC")
+		return db.Order("submission_states.id DESC")
 	}).Preload("Approval").Preload("Failures").Preload("Conflicts").Preload("Conflicts.NewFile").Preload("Approval").
 		Where("submissions.identifier=?", submissionID).First(&sub).Error; err != nil {
 		log.Printf("ERROR: unable to get submission %s detail: %s", submissionID, err.Error())
