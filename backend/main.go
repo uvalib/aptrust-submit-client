@@ -11,7 +11,7 @@ import (
 )
 
 // Version of the service
-const Version = "0.0.1"
+const Version = "1.0.0"
 
 func main() {
 	log.Printf("===> aptrust-submission-client starting up <===")

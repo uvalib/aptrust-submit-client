@@ -12,7 +12,13 @@
             <template #bag="slotProps">
                <dl class="bag">
                   <dt>Bag:</dt>  
-                  <dd>{{ slotProps.node.label }}</dd>
+                  <dd v-if="submission.currentStatus == 'complete'" class="link">
+                     <a :href="`https://repo.aptrust.org/objects?bag_name=${slotProps.node.label }`" target="_blank">
+                        {{ slotProps.node.label }}  
+                     </a>
+                     <i class="pi pi-external-link"></i>
+                  </dd>
+                  <dd v-else>{{ slotProps.node.label }}  </dd>
                   <dt>Files:</dt>  
                   <dd>{{ slotProps.node.children.length }}</dd>
                   <dt>Status:</dt>  
@@ -64,7 +70,13 @@ dl.file, dl.bag {
    grid-column-gap: 0.5rem;
    dd,dt {
       padding: 0.25rem 0;
-    }
+   }
+   dd.link {
+      display: flex;
+      flex-flow: row nowrap;
+      gap: 0.5rem;
+      color: $uva-brand-blue-100;
+   }
 }
 .bag-summary {
    display: flex;

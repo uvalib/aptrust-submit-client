@@ -164,17 +164,6 @@ header {
       align-items: center;
       gap: 10px;
    }
-   p.version {
-      margin: 5px 0 0 0;
-      font-size: 0.5em;
-      text-align: right;
-   }
-}
-.authenticating {
-   min-height:600px;
-   margin-top:5%;
-   font-size: 1.5rem;
-   font-weight: bold;
 }
 .main-header {
    display: flex;

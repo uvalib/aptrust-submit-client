@@ -7,9 +7,9 @@
             v-model:filters="filters" filterDisplay="menu" @filter="onFilter($event)"
             stripedRows showGridlines responsiveLayout="scroll"
             :lazy="true" :paginator="true" :alwaysShowPaginator="true"
-            @page="onPage($event)"  paginatorPosition="both"
+            @page="onPage($event)"  paginatorPosition="both" :rowsPerPageOptions="[30,50,100]" 
             :first="submissionStore.offset" :rows="submissionStore.pageSize" :totalRecords="submissionStore.total"
-            paginatorTemplate="PrevPageLink CurrentPageReport NextPageLink"
+            paginatorTemplate="FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink RowsPerPageDropdown"
             currentPageReportTemplate="{first} - {last} of {totalRecords}"
             sortField="createdAt" :sortOrder="-1" @sort="onSort($event)" 
             :loading="submissionStore.working"
@@ -139,7 +139,9 @@ const onFilter = ((event) => {
 })
 
 const onPage = ((event) => {
+   console.log(event)
    submissionStore.offset = event.first
+   submissionStore.pageSize = event.rows
    submissionStore.getSubmissions()
 })
 
