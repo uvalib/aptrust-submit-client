@@ -21,6 +21,7 @@ type dbConfig struct {
 
 type configData struct {
 	port            int
+	aptrust         string
 	jwtKey          string
 	busName         string
 	eventSourceName string
@@ -33,7 +34,8 @@ func getConfiguration() *configData {
 	var config configData
 	flag.IntVar(&config.port, "port", 8080, "Port to offer service on")
 	flag.StringVar(&config.jwtKey, "jwtkey", "", "JWT signature key")
-	flag.StringVar(&config.group, "group", "lib-aptrust-submit-approve-dev", "JWT signature key")
+	flag.StringVar(&config.group, "group", "lib-aptrust-submit-approve-dev", "Grouper group name for submitters")
+	flag.StringVar(&config.aptrust, "aptrust", "", "APTrust repo url")
 
 	// DB connection params
 	flag.StringVar(&config.database.host, "dbhost", "", "Database host")
@@ -53,6 +55,9 @@ func getConfiguration() *configData {
 
 	flag.Parse()
 
+	if config.aptrust == "" {
+		log.Fatal("Parameter aptrust is required")
+	}
 	if config.jwtKey == "" {
 		log.Fatal("Parameter jwtkey is required")
 	}
@@ -76,6 +81,7 @@ func getConfiguration() *configData {
 	}
 
 	log.Printf("[CONFIG] port            = [%d]", config.port)
+	log.Printf("[CONFIG] aptrust         = [%s]", config.aptrust)
 	log.Printf("[CONFIG] group           = [%s]", config.group)
 	log.Printf("[CONFIG] dbhost          = [%s]", config.database.host)
 	log.Printf("[CONFIG] dbport          = [%d]", config.database.port)

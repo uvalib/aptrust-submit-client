@@ -13,7 +13,7 @@
                <dl class="bag">
                   <dt>Bag:</dt>  
                   <dd v-if="submission.currentStatus == 'complete'" class="link">
-                     <a :href="`https://repo.aptrust.org/objects?bag_name=${slotProps.node.label }`" target="_blank">
+                     <a :href="`${system.apTrustURL}/objects?bag_name=${slotProps.node.label }`" target="_blank">
                         {{ slotProps.node.label }}  
                      </a>
                      <i class="pi pi-external-link"></i>
@@ -51,10 +51,12 @@
 <script setup>
 import Panel from 'primevue/panel'
 import { useSubmissionsStore } from "@/stores/submissions"
+import { useSystemStore } from "@/stores/system"
 import Tree from 'primevue/tree'
 import WaitSpinner from './WaitSpinner.vue'
 
 const submission = useSubmissionsStore()
+const system = useSystemStore()
 </script>
 
 <style lang="scss" scoped>

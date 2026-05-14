@@ -6,6 +6,7 @@
 cd bin; ./aptrust-submit-client \
    -port      ${SERVICE_PORT} \
    -jwtkey    ${JWT_KEY} \
+   -aptrust   ${APT_URL} \
    -group     ${AUTH_GROUP} \
    -busname   ${EVENT_BUS_NAME} \
    -eventsrc  ${EVENT_SRC_NAME} \

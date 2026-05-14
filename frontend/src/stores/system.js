@@ -17,6 +17,7 @@ export const useSystemStore = defineStore('system', {
       submissionStatuses: [],
       clients: [],
       storageOptions: [],
+      apTrustURL: "",
       toast: {
          error: false,
          summary: "",
@@ -37,6 +38,7 @@ export const useSystemStore = defineStore('system', {
             this.submissionStatuses = response.data.submissionStatuses
             this.clients = response.data.clients
             this.storageOptions  = response.data.storageOptions
+            this.apTrustURL = response.data.apTrustURL
             this.working = false
          }).catch( err => {
             this.setError(  err )

@@ -23,20 +23,22 @@ type eventContext struct {
 }
 
 type serviceContext struct {
-	Version string
-	JWTKey  string
-	Group   string
-	DB      *gorm.DB
-	Events  eventContext
-	Dev     devConfig
+	Version    string
+	APTrustURL string
+	JWTKey     string
+	Group      string
+	DB         *gorm.DB
+	Events     eventContext
+	Dev        devConfig
 }
 
 func initializeService(version string, cfg *configData) *serviceContext {
 	ctx := serviceContext{
-		Version: version,
-		JWTKey:  cfg.jwtKey,
-		Group:   cfg.group,
-		Dev:     cfg.dev,
+		Version:    version,
+		APTrustURL: cfg.aptrust,
+		JWTKey:     cfg.jwtKey,
+		Group:      cfg.group,
+		Dev:        cfg.dev,
 	}
 
 	log.Printf("INFO: connecting to database...")
@@ -103,8 +105,10 @@ func (svc *serviceContext) getConfig(c *gin.Context) {
 		SubmissionStatuses []string         `json:"submissionStatuses"`
 		Clients            []client         `json:"clients"`
 		StorageOptions     []storageOptions `json:"storageOptions"`
+		APTrust            string           `json:"apTrustURL"`
 	}{
 		Version:            ver,
+		APTrust:            svc.APTrustURL,
 		SubmissionStatuses: []string{"abandoned", "building", "complete", "error", "incomplete", "pending-approval", "pending-ingest", "registered", "submitting", "validating"},
 	}
 
