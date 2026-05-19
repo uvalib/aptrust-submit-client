@@ -78,6 +78,7 @@ export const useSubmissionsStore = defineStore('submission', {
          this.query = ""
          this.total = 0
          this.detail = null
+         this.filters = []
          this.getSubmissions()
       },
       getSubmissionDetail( identifier ) {

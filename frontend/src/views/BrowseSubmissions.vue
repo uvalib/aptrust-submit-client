@@ -17,7 +17,7 @@
             <template #header>
                <div class="search-controls">
                   <div class="search">
-                     <Checkbox v-model="submissionStore.includeAutoApproved" inputId="autoapproved" binary @update:model-value="submissionStore.getSubmissions()"/>
+                     <Checkbox v-model="submissionStore.includeAutoApproved" inputId="autoapproved" binary @update:model-value="includeAutoApproveChanged()"/>
                      <label for="autoapproved">Include auto-approved submissions</label>
                   </div>
                   <div class="search">
@@ -25,7 +25,7 @@
                         <InputIcon class="pi pi-search" />
                         <InputText v-model="submissionStore.query" @keypress="searchKeyPressed($event)" fluid aria-label="search submissions"/>
                      </IconField>
-                     <Button severity="secondary" label="Reset" @click="submissionStore.resetSearch()"/>
+                     <Button severity="secondary" label="Reset" @click="resetSearchClicked()"/>
                   </div>
                </div>
             </template>
@@ -68,10 +68,10 @@
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, onBeforeMount } from 'vue'
 import { useSubmissionsStore } from "@/stores/submissions"
 import { useSystemStore } from "@/stores/system"
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import IconField from 'primevue/iconfield'
@@ -84,6 +84,7 @@ import { FilterMatchMode } from '@primevue/core/api'
 const submissionStore = useSubmissionsStore()
 const system = useSystemStore()
 const router = useRouter()
+const route = useRoute()
 
 const selectedSubmission = ref()
 
@@ -101,8 +102,89 @@ const clients = computed( () => {
    return out
 })
 
+onBeforeMount( () => {
+   // pull query params and update store filter, query and pagination settings
+   // they will be used in onMounted when submissions are requested
+   if ( route.query.autoapproved ) {
+      submissionStore.includeAutoApproved = true 
+   }
+   if ( route.query.q ) {
+      submissionStore.query = route.query.q 
+   }
+   if ( route.query.offset ) {
+      submissionStore.offset = parseInt(route.query.offset, 10)
+   }
+   if ( route.query.limit ) {
+      submissionStore.pageSize = parseInt(route.query.limit, 10)
+   }
+   if ( route.query.sort ) {
+      submissionStore.sortField = route.query.sort
+   }
+   if ( route.query.order ) {
+      submissionStore.sortOrder = route.query.order
+   }
+   if ( route.query.filter ) { 
+      let filterJson = JSON.parse(route.query.filter)
+      filterJson.forEach( fj => {
+         let bits = fj.split("=")
+         submissionStore.filters.push( {field: bits[0], match: "equals", value: bits[1]})
+      })
+   }
+})
+
 onMounted( () => {
    submissionStore.getSubmissions()
+})
+
+const resetSearchClicked = (() => {
+   let query = Object.assign({}, route.query)
+   delete query.autoapproved
+   delete query.q
+   delete query.offset
+   delete query.pageSize
+   delete query.sortField
+   delete query.sortOrder
+   delete query.filter
+   router.push({query})
+
+   // clear the primevue datatables filter model
+   for (let key in filters.value) {
+      filters.value[key].value = null
+   }
+   
+   submissionStore.resetSearch()
+})
+
+const searchToQueryParams = (() => {
+   let query = Object.assign({}, route.query)
+   delete query.autoapproved
+   delete query.q
+   delete query.offset
+   delete query.pageSize
+   delete query.sortField
+   delete query.sortOrder
+   delete query.filter
+   if ( submissionStore.includeAutoApproved ) {
+      query.autoapproved = 1
+   }
+   if ( submissionStore.query != "" ) {
+      query.q = submissionStore.query
+   }
+   if (submissionStore.offset > 0 ) {
+      query.offset = submissionStore.offset
+   }
+   query.limit = submissionStore.pageSize
+   query.sort = submissionStore.sortField
+   query.order = submissionStore.sortOrder
+   if (submissionStore.filters.length > 0) {
+      query.filter = submissionStore.filtersAsQueryParam
+   }
+   router.push({query})
+   submissionStore.getSubmissions()
+})
+
+const includeAutoApproveChanged = (() => {
+   searchToQueryParams()
 })
 
 const statusClass = ( (status)=> {
@@ -124,7 +206,7 @@ const onSort = ((event) => {
    } else if (event.sortOrder == -1) {
       submissionStore.sortOrder = "desc"
    }
-   submissionStore.getSubmissions()
+   searchToQueryParams()
 })
 
 const onFilter = ((event) => {
@@ -135,20 +217,19 @@ const onFilter = ((event) => {
          submissionStore.filters.push({field: key, match: data.matchMode, value: data.value})
       }
    })
-   submissionStore.getSubmissions()
+   searchToQueryParams()
 })
 
 const onPage = ((event) => {
-   console.log(event)
    submissionStore.offset = event.first
    submissionStore.pageSize = event.rows
-   submissionStore.getSubmissions()
+   searchToQueryParams()
 })
 
 const searchKeyPressed = ((event) => {
    submissionStore.offset = 0
    if (event.keyCode == 13) {
-      submissionStore.getSubmissions()
+      searchToQueryParams()
    }
 })
 
