@@ -91,7 +91,6 @@ const selectedSubmission = ref()
 const filters = ref({
    client: { value: null, matchMode: FilterMatchMode.EQUALS },
    status: { value: null, matchMode: FilterMatchMode.EQUALS },
-   storage: { value: null, matchMode: FilterMatchMode.EQUALS },
 });
 
 const clients = computed( () => {
@@ -128,6 +127,11 @@ onBeforeMount( () => {
       filterJson.forEach( fj => {
          let bits = fj.split("=")
          submissionStore.filters.push( {field: bits[0], match: "equals", value: bits[1]})
+         if (bits[0] == "client") {
+            filters.value.client.value = bits[1]
+         } else if (bits[0] == "status") {
+            filters.value.clstatusient.value = bits[1]
+         }
       })
    }
 })
