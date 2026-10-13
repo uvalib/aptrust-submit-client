@@ -41,9 +41,10 @@ func (svc *serviceContext) authenticate(c *gin.Context) {
 	// if not in dev mode check for membership in libra-admins
 	canApprove := false
 	if svc.Dev.user == "" {
-		// Membership format: cn=group_name1;cn=group_name2;...
+		// Membership format: cn=lib-aptrust-submit-approve-dev,ou=Personal,ou=Groups,o=University of Virginia,c=US;
 		membershipStr := c.GetHeader("member")
-		if strings.Contains(membershipStr, svc.Group) {
+		groupKey := fmt.Sprintf("cn=%s,", svc.Group)
+		if strings.Contains(membershipStr, groupKey) {
 			log.Printf("INFO: user %s is a member of %s and can approve submissions", computingID, svc.Group)
 			canApprove = true
 		} else {
