@@ -2,6 +2,7 @@ import { createApp, markRaw } from 'vue'
 import { createPinia } from 'pinia'
 import formatDateTimePlugin from './plugins/formatdatetime'
 import formatFileSizePlugin from './plugins/formatfilesize'
+import './assets/main.css'
 
 import App from './App.vue'
 import router from './router'
@@ -44,5 +45,12 @@ app.component("ConfirmDialog", ConfirmDialog)
 app.use(createPinia().use( ({ store }) => {
    store.router = markRaw(router)
 }))
+
+// NuxtUI defaulted to LIGHT mode
+import ui from '@nuxt/ui/vue-plugin'
+import { useColorMode } from '@vueuse/core'
+useColorMode().value = 'light'
+app.use(ui)
+
 
 app.mount('#app')

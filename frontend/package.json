@@ -7,26 +7,31 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@iconify-json/lucide": "^1.2.155",
+    "@nuxt/ui": "^4.12.2",
     "@primeuix/themes": "^2.0.3",
-    "@vueuse/core": "^14.3.0",
-    "@vueuse/integrations": "^14.3.0",
-    "axios": "^1.20.0",
+    "@vueuse/core": "^15.0.0",
+    "@vueuse/integrations": "^15.0.0",
+    "axios": "^1.21.1",
     "dayjs": "^1.11.23",
     "jwt-decode": "^4.0.0",
-    "pinia": "^3.0.4",
+    "pinia": "^4.1.0",
     "primeicons": "^7.0.0",
     "primevue": "^4.5.5",
-    "vue": "^3.5.44",
-    "vue-router": "^5.4.0",
+    "tailwindcss": "^4.3.5",
+    "vue": "^3.5.45",
+    "vue-router": "^5.5.1",
     "vue3-cookies": "^1.0.6"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^6.0.10",
-    "sass-embedded": "^1.105.1",
-    "vite": "^8.3.4"
+    "@vitejs/plugin-vue": "^6.0.11",
+    "sass-embedded": "^1.108.2",
+    "vite": "^8.3.8"
   },
   "allowScripts": {
     "fsevents@2.3.3": true,
-    "@parcel/watcher@2.6.0": true
+    "@parcel/watcher@2.6.0": true,
+    "vue-demi@0.14.10": true,
+    "esbuild@0.27.2": true
   }
 }

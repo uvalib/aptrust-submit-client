@@ -1,6 +1,6 @@
 <template>
-   <footer role="contentinfo" id="libra-footer">
-      <div class="copy">
+   <footer role="contentinfo" id="libra-footer" class="bg-brand-blue text-white p-4 column items-end">
+      <div class="row-right gap-2 items-center">
          <a href="https://guides.lib.virginia.edu/findinggovinfo">
             <svg alt="Federal Depository Library Program logo" height="30px" viewBox="0 0 76 69" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
@@ -18,7 +18,7 @@
             <a href="http://www.virginia.edu/">University of Virginia</a>
          </span>
       </div>
-      <div class="version">{{systemStore.version}}</div>
+      <div class="text-sm">{{systemStore.version}}</div>
    </footer>
 </template>
 
@@ -28,24 +28,4 @@ const systemStore = useSystemStore()
 </script>
 
 <style scoped lang="scss">
-footer {
-   background-color: $uva-brand-blue;
-   color: white;
-   padding: 20px;
-   text-align: right;
-   
-   .copy {
-      display: flex;
-      flex-flow: row nowrap;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 10px;
-      a {
-         color: white !important;
-      }
-   }
-   .version {
-      font-size: 0.9em;
-   }
-}
 </style>
