@@ -6,6 +6,7 @@ export const useSubmissionsStore = defineStore('submission', {
    state: () => ({
       working: false,
       loadingBags: false,
+      currPage: 1,
       offset: 0,
       query: "",
       filters: [],
@@ -34,6 +35,10 @@ export const useSubmissionsStore = defineStore('submission', {
       }
    },
    actions: {
+      resetSearch() {
+         this.currPage = 1
+         this.filters = []
+      },
       getSubmissions() {
          this.working = true
          this.detail = null
@@ -69,17 +74,6 @@ export const useSubmissionsStore = defineStore('submission', {
             this.working = false
          })
 
-      },
-      resetSearch() {
-         this.page = 1
-         this.pageSize = 30 
-         this.searchHits = []
-         this.includeAutoApproved = false 
-         this.query = ""
-         this.total = 0
-         this.detail = null
-         this.filters = []
-         this.getSubmissions()
       },
       getSubmissionDetail( identifier ) {
          this.working = true
